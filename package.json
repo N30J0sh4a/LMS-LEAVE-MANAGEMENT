@@ -1,0 +1,27 @@
+{
+  "name": "lms-leave-management",
+  "version": "0.1.0",
+  "bin": {
+    "lms-leave-management": "bin/lms-leave-management.js"
+  },
+  "scripts": {
+    "build": "echo \"The build step is not required when using JavaScript!\" && exit 0",
+    "cdk": "cdk",
+    "test": "jest"
+  },
+  "devDependencies": {
+    "aws-cdk": "2.1107.0",
+    "eslint": "^10.0.2",
+    "eslint-plugin-security": "^4.0.0",
+    "jest": "^30"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.999.0",
+    "@aws-sdk/lib-dynamodb": "^3.999.0",
+    "aws-cdk-lib": "^2.240.0",
+    "construct": "^1.0.0",
+    "constructs": "^10.5.0",
+    "dotenv": "^17.3.1",
+    "uuid": "^13.0.0"
+  }
+}
