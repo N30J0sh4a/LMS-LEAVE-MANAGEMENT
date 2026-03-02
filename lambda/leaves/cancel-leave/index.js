@@ -7,7 +7,7 @@ const TABLE = process.env.TABLE_NAME;
 
 exports.handler = async (event) => {
     try{
-        const {leaveId} = event.pathparameters;
+        const {leaveId} = event.pathParameters;
         const body = JSON.parse(event.body);
         
         if(!body.employeeId){
@@ -44,7 +44,7 @@ exports.handler = async (event) => {
                 PK : leave.PK,
                 SK: leave.SK
             },
-            UpdateExpression: 'SET #status = :status, GSI1PK = :gsi1pk, updateAt = :updatedAt',
+            UpdateExpression: 'SET #status = :status, GSI1PK = :gsi1pk, updatedAt = :updatedAt',
             ExpressionAttributeNames: {'#status': 'status'},
             ExpressionAttributeValues: {
                 ':status': LEAVE_STATUS.CANCELLED,

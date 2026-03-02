@@ -26,9 +26,9 @@ exports.handler = async (event) => {
             endDate: body.endDate,
             status: LEAVE_STATUS.PENDING,
             GSI1PK: `status#${LEAVE_STATUS.PENDING}`,
-            GsI1SK: `createdAt#${now}`,
-            createAt: now,
-            updateAt: now,
+            GSI1SK: `createdAt#${now}`,
+            createdAt: now,
+            updatedAt: now,
         };
         
         await db.send(new PutCommand({//saves the leave in the table
@@ -39,9 +39,12 @@ exports.handler = async (event) => {
 
         return success(leave, 201);
 
-    } catch(err){
+    } catch(err) {
+        console.log('FULL ERROR:', JSON.stringify(err));  // add this
+        console.log('ERROR MESSAGE:', err.message);        // add this
+        console.log('ERROR STACK:', err.stack);            // add this
         if(err.name === 'ConditionalCheckFailedException'){
-            return error('Leave request already exists', 409)
+        return error('Leave request already exists', 409);
         }
         return error(err.message || 'Internal server error', err.statusCode || 500);
     }
