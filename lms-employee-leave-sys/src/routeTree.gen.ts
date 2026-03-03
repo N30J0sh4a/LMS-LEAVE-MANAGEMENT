@@ -10,11 +10,23 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ManagerRouteImport } from './routes/manager'
+import { Route as EmployeeRouteImport } from './routes/employee'
+import { Route as CreateAccountRouteImport } from './routes/create-account'
 import { Route as IndexRouteImport } from './routes/index'
 
 const ManagerRoute = ManagerRouteImport.update({
   id: '/manager',
   path: '/manager',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EmployeeRoute = EmployeeRouteImport.update({
+  id: '/employee',
+  path: '/employee',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CreateAccountRoute = CreateAccountRouteImport.update({
+  id: '/create-account',
+  path: '/create-account',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -25,27 +37,35 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/create-account': typeof CreateAccountRoute
+  '/employee': typeof EmployeeRoute
   '/manager': typeof ManagerRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/create-account': typeof CreateAccountRoute
+  '/employee': typeof EmployeeRoute
   '/manager': typeof ManagerRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/create-account': typeof CreateAccountRoute
+  '/employee': typeof EmployeeRoute
   '/manager': typeof ManagerRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/manager'
+  fullPaths: '/' | '/create-account' | '/employee' | '/manager'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/manager'
-  id: '__root__' | '/' | '/manager'
+  to: '/' | '/create-account' | '/employee' | '/manager'
+  id: '__root__' | '/' | '/create-account' | '/employee' | '/manager'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CreateAccountRoute: typeof CreateAccountRoute
+  EmployeeRoute: typeof EmployeeRoute
   ManagerRoute: typeof ManagerRoute
 }
 
@@ -56,6 +76,20 @@ declare module '@tanstack/react-router' {
       path: '/manager'
       fullPath: '/manager'
       preLoaderRoute: typeof ManagerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/employee': {
+      id: '/employee'
+      path: '/employee'
+      fullPath: '/employee'
+      preLoaderRoute: typeof EmployeeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/create-account': {
+      id: '/create-account'
+      path: '/create-account'
+      fullPath: '/create-account'
+      preLoaderRoute: typeof CreateAccountRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -70,6 +104,8 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CreateAccountRoute: CreateAccountRoute,
+  EmployeeRoute: EmployeeRoute,
   ManagerRoute: ManagerRoute,
 }
 export const routeTree = rootRouteImport

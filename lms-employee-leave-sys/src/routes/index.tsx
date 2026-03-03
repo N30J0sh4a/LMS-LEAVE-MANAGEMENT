@@ -1,158 +1,109 @@
-import React, { useEffect } from "react";
-import { createFileRoute } from "@tanstack/react-router";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
-import { SunIcon } from "lucide-react";
-import { CardFooter } from "../components/ui/card";
-import { LeaveRequestItem } from "../components/leave-request-item";
-import { Calendar } from "@/components/ui/calendar"
-import { AppSidebar } from "@/components/app-sidebar"
+import { useEffect } from 'react'
+import { createFileRoute } from '@tanstack/react-router'
+import { Card } from '../components/ui/card'
+import { 
+  InputGroup, 
+  InputGroupAddon, 
+  InputGroupInput,
+  InputGroupText,
+   } from '../components/ui/input-group';
+import { Eye, EyeOffIcon } from 'lucide-react';
+import { Field, FieldGroup, FieldLabel } from "../components/ui/field"
+import { Checkbox } from '../components/ui/checkbox';
+import { Label } from '../components/ui/label';
+import { Link } from '@tanstack/react-router';
+import { Button } from '../components/ui/button';
 
 export const Route = createFileRoute('/')({
   component: RouteComponent,
 })
 
-export function RouteComponent (){
+function RouteComponent() {
 
-  {/**Get current date * time w/ format */}
-  const currentDate = new Date();
-  const formattedDate = currentDate.toDateString();
-
-
-  {/**Page title change */}
   useEffect(() => {
-    document.title = 'Employee | Dashboard'
+    document.title = "Sign in"
   }, []);
+  return <main className='flex flex-col flex-1 w-screen h-screen bg-linear-90 from-blue-400 to-blue-800'>
+    <section className='flex flex-1 w-full h-full px-[30dvw] py-[10dvh] justify-center align-center'>
+      <Card
+        className='flex flex-1 flex-col w-fit h-fit gap-5 px-[5dvw] py-[10dvh] justify-center content-center'
+      >
+        <img src='./logo-32x32.png' alt='logo' className='w-20 h-auto rounded-xl self-center'/>
 
-  {/**For th shadcn calendar */}
-  const [date, setDate] = React.useState<Date | undefined>(new Date())
-
-  return (
-    //page content
-    <main className='flex flex-1 w-screen h-screen m-0 p-0'>
-
-      {/**Sidebar */}
-      <section className='flex flex-1 flex-col w-auto h-full '>
-       <SidebarProvider
-        open={true}
-        defaultOpen={true}
-       >
-          <AppSidebar/>
-          <main>
-            <SidebarTrigger/>
-          </main>
-       </SidebarProvider>
-
-      </section>
-
-      {/**Main content */}
-      <section className='flex flex-5 flex-col w-auto h-full p-20 gap-5'>
-        
-        <div className='flex flex-0 flex-col w-full h-fit gap-2.5'>
-          <div className='flex flex-0 flex-row h-fit w-full content-center gap-5'>
-            <SunIcon className='w-8 h-auto'/>
-            <h1 className='text-2xl text-stone-600 font-semibold'>Good morning!</h1>
-          </div>
-
-          <p className='text-xl font-thin'>Today is <span className='font-normal'>{formattedDate}</span></p>
-        </div>
-        
-        {/**Leave cards */}
-        <div className='flex flex-0 w-full h-fit gap-10'>
-          <Card
-            className='flex-1 h-full'
-          >
-            <CardHeader>
-              <CardTitle><p className='text-2xl'>Number of leaves</p></CardTitle>
-              <CardDescription>Available leaves</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className='w-full h-fit'>
-                <p className='text-5xl font-bold'>5</p>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card
-            className='flex-1 h-full'
-          >
-            <CardHeader>
-              <CardTitle><p className='text-2xl'>Pending leaves</p></CardTitle>
-              <CardDescription>Current, pending leave requests</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className='w-full h-fit'>
-                <p className='text-5xl font-bold'>1</p>
-              </div>
-            </CardContent>
-            
-          </Card>
-
-          <Card
-            className='flex-1 h-full'
-          >
-            <CardHeader>
-              <CardTitle><p className='text-2xl'>Rejected leaves</p></CardTitle>
-              <CardDescription>Leave requests rejected by the manager</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className='w-full h-fit'>
-                <p className='text-5xl font-bold'>0</p>
-              </div>
-            </CardContent>
-          </Card>
-
+        {/**Texts */}
+        <div className='flex flex-0 flex-col w-full text-center'>
+          <p className='text-3xl font-normal'>Sign in</p>
+          <p className='text-xl text-stone-500 font-normal'>Sign in using your credentials</p>
         </div>
 
-        {/**Leaves list */}
-        <div className='flex flex-1 w-full h-auto m-0 p-0 gap-10'>
-          
-          {/**Your leave requests */}
-          <Card
-            className='flex-1 h-full w-auto'
-          >
-            <CardHeader>
-              <CardTitle><p className='text-2xl'>Your leave requests</p></CardTitle>
-              <CardDescription>Click on each item to view your request status</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className='w-full h-fit border-t-3'>
-                <LeaveRequestItem
-                  title="Hudson Williams"
-                  dateTime="February 25, 2026 | 07:15:34 AM"
-                />
-                <LeaveRequestItem
-                  title="Connor Storrie"
-                  dateTime="February 25, 2026 | 07:15:34 AM"
-                />
-                <LeaveRequestItem
-                  title="Sabrina Carpenter"
-                  dateTime="February 25, 2026 | 07:15:34 AM"
-                />
-              </div>
-            </CardContent>
-          </Card>
+        {/**Button Group */}
+        <div className='flex flex-1 flex-col w-full h-full'>
+        <FieldGroup>
+          <Field
+              orientation={"vertical"}
+            >
+              <FieldLabel htmlFor="inline-end-input" className='font-regular'>Email</FieldLabel>
+              <InputGroup>
+                <InputGroupInput placeholder="example.com" className='pl-0.5!'/>
+                <InputGroupAddon align='inline-end'>
+                  <InputGroupText>.com</InputGroupText>
+                </InputGroupAddon>
+              </InputGroup>
+            </Field>
 
-          {/**Rejected leave requests */}
-          <Calendar
-            mode="single"
-            selected={date}
-            onSelect={setDate}
-            className="rounded-lg border"
-          />
+            <Field>
+              <FieldLabel htmlFor='inline-end-input' className='font-regular'>Password</FieldLabel>
+              <InputGroup>
+                <InputGroupInput placeholder="Enter your password here..." type='password' id="inline-end-input"/>
+                  <InputGroupAddon>
+                    <EyeOffIcon/>
+                  </InputGroupAddon>
+              </InputGroup>
+            </Field>
 
+            <Field orientation="horizontal">
+              <Checkbox id='remember-password' name='remember-password'/>
+              <Label htmlFor="remember-checkbox" className="font-normal">Remember password</Label>
+
+              <div className='flex flex-1 w-auto h-fit'/>
+
+              <Button
+                variant={"link"}
+              >Forgot password?</Button>
+            </Field>
+
+            <Field orientation="vertical">
+              <FieldGroup>
+                <Button asChild
+                  variant={"default"}
+                  
+                >
+                  <Link to="/create-account">Create an account</Link>
+                </Button>
+              </FieldGroup>
+
+              <FieldGroup>
+                <Button
+                  asChild
+                  variant={"outline"}
+                >
+                  <Link to="/">Log in as an Employee</Link>
+                </Button>
+              </FieldGroup>
+
+              <FieldGroup>
+                <Button
+                  variant={"outline"}
+                >
+                  <Link to="/">Log in as a Manager</Link>
+                </Button>
+              </FieldGroup>
+            </Field>
+        </FieldGroup>
         </div>
 
-        <div className='flex flex-1 h-auto w-full'/>
-      </section>
-    </main>
-  )
+        {/**For checkboxes */}
+      </Card>
+    </section>
+  </main>
 }
-
-export default RouteComponent;
