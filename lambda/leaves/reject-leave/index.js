@@ -21,7 +21,7 @@ exports.handler = async (event) => {
         const result = await db.send(new QueryCommand({
             TableName: TABLE,
             KeyConditionExpression: 'PK = :pk',
-            ExpressionAttributesValues: {
+            ExpressionAttributeValues: {
                 ':pk': `leave#${leaveId}`,
             },
         }));
@@ -44,8 +44,8 @@ exports.handler = async (event) => {
                 PK: leave.PK,
                 SK: leave.SK,
             },
-            UpdateExpression: 'SET #status = :status, GSI1PK = :gsi1pk, reviewedBy = :reviewedBy, reviewedAt = :reviewedAt, rejectionReason = :rejectReason, updatedAt = :updatedAt',
-            ExpressionAttributesNames: { '#status': 'status'},
+            UpdateExpression: 'SET #status = :status, GSI1PK = :gsi1pk, reviewedBy = :reviewedBy, reviewedAt = :reviewedAt, rejectionReason = :rejectionReason, updatedAt = :updatedAt',
+            ExpressionAttributeNames: { '#status': 'status'},
             ExpressionAttributeValues: {
                 ':status': LEAVE_STATUS.REJECTED,
                 ':gsi1pk': `status#${LEAVE_STATUS.REJECTED}`,

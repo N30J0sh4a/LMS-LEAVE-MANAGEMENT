@@ -2,7 +2,6 @@ const { QueryCommand } = require('@aws-sdk/lib-dynamodb');
 const db = require('../../shared/dynamodb');
 const {success, error} = require('../../shared/response');
 const {LEAVE_STATUS} = require('../../shared/constants');
-const { KeyCondition } = require('aws-cdk-lib/aws-appsync');
 
 const TABLE = process.env.TABLE_NAME;
 

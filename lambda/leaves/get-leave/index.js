@@ -6,7 +6,7 @@ const TABLE = process.env.TABLE_NAME;
 
 exports.handler = async (event) => {
     try{
-        const {leaveId} = event.pathparameters;
+        const {leaveId} = event.pathParameters;
 
         if(!leaveId){
             return error('leaveId is required', 400);
