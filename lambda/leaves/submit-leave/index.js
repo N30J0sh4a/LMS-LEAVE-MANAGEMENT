@@ -4,6 +4,7 @@ const db = require('../../shared/dynamodb');
 const {success, error} = require('../../shared/response');
 const {validateLeaveInput} = require('../../shared/validators');
 const {LEAVE_STATUS} = require('../../shared/constants');
+const { encrypt } = require('../../shared/encryption');
 
 const TABLE = process.env.TABLE_NAME;
 
@@ -24,6 +25,7 @@ exports.handler = async (event) => {
             leaveType: body.leaveType,
             startDate: body.startDate,
             endDate: body.endDate,
+            reason:  encrypt(body.reason || ''), 
             status: LEAVE_STATUS.PENDING,
             GSI1PK: `status#${LEAVE_STATUS.PENDING}`,
             GSI1SK: `createdAt#${now}`,

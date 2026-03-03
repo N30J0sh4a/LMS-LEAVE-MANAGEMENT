@@ -2,7 +2,7 @@ const {QueryCommand, UpdateCommand} = require('@aws-sdk/lib-dynamodb');
 const db = require('../../shared/dynamodb');
 const {success, error} = require('../../shared/response');
 const { LEAVE_STATUS, VALID_TRANSITIONS } = require('../../shared/constants');
-
+const { encrypt } = require('../../shared/encryption');
 const TABLE = process.env.TABLE_NAME;
 
 exports.handler = async (event) => {
@@ -51,7 +51,7 @@ exports.handler = async (event) => {
                 ':gsi1pk': `status#${LEAVE_STATUS.REJECTED}`,
                 ':reviewedBy': body.reviewedBy,
                 ':reviewedAt': now,
-                ':rejectionReason': body.rejectionReason,
+                ':rejectionReason': encrypt(body.rejectionReason),
                 ':updatedAt': now,
             }
         }));

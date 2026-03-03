@@ -2,7 +2,7 @@ const {QueryCommand, UpdateCommand} = require('@aws-sdk/lib-dynamodb');
 const db = require('../../shared/dynamodb');
 const {success, error} = require('../../shared/response');
 const { LEAVE_STATUS, VALID_TRANSITIONS } = require('../../shared/constants');
-
+const { decrypt } = require('../../shared/encryption');
 const TABLE = process.env.TABLE_NAME;
 
 exports.handler = async (event) => {
@@ -18,7 +18,7 @@ exports.handler = async (event) => {
             return error(`Invalid status. Must be one of: ${Object.values(LEAVE_STATUS).join(', ')}`, 400);
         }
 
-          const params = {
+        const params = {
             TableName: TABLE,
             IndexName: 'StatusIndex',
             KeyConditionExpression: 'GSI1PK = :gsi1pk',
@@ -62,8 +62,13 @@ exports.handler = async (event) => {
 
         const result = await db.send(new QueryCommand(params));
 
+        const items = (result.Items || []).map(item => ({
+                    ...item,
+                    reason: decrypt(item.reason),
+                }));
+
         const responseData = {
-            items: result.Items || [],
+            items,
             count: result.Count || 0,
             employeeId,
         };

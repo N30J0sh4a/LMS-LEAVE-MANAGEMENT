@@ -2,7 +2,7 @@ const { QueryCommand } = require('@aws-sdk/lib-dynamodb');
 const db = require('../../shared/dynamodb');
 const {success, error} = require('../../shared/response');
 const {LEAVE_STATUS} = require('../../shared/constants');
-
+const { decrypt } = require('../../shared/encryption');
 const TABLE = process.env.TABLE_NAME;
 
 exports.handler = async (event) => {
@@ -39,9 +39,14 @@ exports.handler = async (event) => {
         }
 
         const result = await db.send(new QueryCommand(params));
+        
+        const items = (result.Items || []).map(item => ({
+            ...item,
+            reason: decrypt(item.reason),
+        }));
 
         const  responseData = {
-            items: result.Items || [],
+            items,
             count: result.Count || 0,
         };
 

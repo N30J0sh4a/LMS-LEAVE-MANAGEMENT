@@ -1,7 +1,7 @@
 const {QueryCommand} = require('@aws-sdk/lib-dynamodb');
 const db = require('../../shared/dynamodb');
 const {success, error} = require('../../shared/response');
-
+const { decrypt } = require('../../shared/encryption');
 const TABLE = process.env.TABLE_NAME;
 
 exports.handler = async (event) => {
@@ -20,11 +20,14 @@ exports.handler = async (event) => {
             },
         }));
 
-         if (!result.Items || result.Items.length === 0){
+        if (!result.Items || result.Items.length === 0){
             return error('Leave request not found', 404);
-         }
+        }
 
-         return success(result.Items[0]);
+        const leave = result.Items[0]; // test ko pa to if tama order
+        leave.reason = decrypt(leave.reason);
+
+        return success(result.Items[0]);
     } catch(err){
         return error(err.message || 'Internal server error', err.statusCode || 500);
     }
