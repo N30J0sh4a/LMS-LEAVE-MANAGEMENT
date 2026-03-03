@@ -1,214 +1,308 @@
-import React, { useEffect, useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from 'react'
+import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router'
+import { onAuthStateChanged, signOut } from 'firebase/auth'
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "../components/ui/card"
-import { SunIcon } from "lucide-react";
-import { LeaveRequestItem } from "../components/leave-request-item";
-import { Calendar } from "../components/ui/calendar"
-import { Button } from "../components/ui/button";
-import { Separator } from "../components/ui/separator";
-import { Avatar, AvatarImage } from "../components/ui/avatar";
+  CalendarDays,
+  Clock3,
+  PanelLeft,
+  Plane,
+  ShieldCheck,
+  Sparkles,
+  UserRound,
+} from 'lucide-react'
+
+import { auth } from '../lib/firebase'
+import { loginUserSession, type UserProfile } from '../lib/auth-api'
+import { clearUserProfile, getUserProfile, saveUserProfile } from '../lib/session'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card'
+import { AppSidebar } from '../components/app-sidebar'
+import { SidebarInset, SidebarProvider, SidebarTrigger } from '../components/ui/sidebar'
 
 export const Route = createFileRoute('/employee')({
+  beforeLoad: () => {
+    if (typeof window === 'undefined') {
+      return
+    }
+
+    const profile = getUserProfile()
+    if (!profile || profile.role !== 'employee') {
+      throw redirect({ to: '/' })
+    }
+  },
   component: RouteComponent,
 })
 
-export function RouteComponent (){
+function RouteComponent() {
+  const navigate = useNavigate()
+  const [user, setUser] = useState<UserProfile | null>(() => getUserProfile())
+  const [loadingProfile, setLoadingProfile] = useState(true)
+  const [currentTime, setCurrentTime] = useState(() => new Date())
 
-  {/**Get current date * time w/ format */}
-  const currentDate = new Date();
-  const formattedDate = currentDate.toDateString();
-
-  {/**Page title change */}
   useEffect(() => {
     document.title = 'Employee | Dashboard'
-  }, []);
+  }, [])
 
-  {/**For the shadcn calendar */}
-  const [date, setDate] = React.useState<Date | undefined>(new Date())
-
-  {/**Live clock and time format */}
-  const[currentTime, setCurrentTime] = useState(new Date())
-  const padTwoDigits = (num) => num.toString().padStart(2, '0');
-  const formattedTime = `${padTwoDigits(currentTime.getHours())}:${padTwoDigits(currentTime.getMinutes())}:${padTwoDigits(currentTime.getSeconds())}`
   useEffect(() => {
-    const tick = () => {
+    const timer = window.setInterval(() => {
       setCurrentTime(new Date())
-    };
+    }, 1000)
 
-    const timerId = setInterval(tick, 1000);
+    return () => window.clearInterval(timer)
+  }, [])
 
-    return function cleanup() {
-      clearInterval(timerId);
-    };
-  }, []);
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (!firebaseUser) {
+        clearUserProfile()
+        setUser(null)
+        setLoadingProfile(false)
+        await navigate({ to: '/' })
+        return
+      }
+
+      try {
+        const idToken = await firebaseUser.getIdToken()
+        const profile = await loginUserSession(idToken, {
+          role: 'employee',
+          autoCreate: false,
+        })
+
+        saveUserProfile(profile)
+        setUser(profile)
+      } catch {
+        clearUserProfile()
+        setUser(null)
+        await navigate({ to: '/' })
+      } finally {
+        setLoadingProfile(false)
+      }
+    })
+
+    return () => unsubscribe()
+  }, [navigate])
+
+  const formattedDate = useMemo(
+    () =>
+      currentTime.toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      }),
+    [currentTime]
+  )
+
+  const formattedTime = useMemo(
+    () =>
+      currentTime.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      }),
+    [currentTime]
+  )
+
+  const initials = useMemo(() => {
+    if (!user?.fullName) {
+      return 'U'
+    }
+    return user.fullName
+      .split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase() ?? '')
+      .join('')
+  }, [user?.fullName])
+
+  const handleLogout = async () => {
+    await signOut(auth)
+    clearUserProfile()
+    await navigate({ to: '/' })
+  }
+
+  if (loadingProfile || !user) {
+    return (
+      <main className="min-h-screen grid place-items-center bg-[#F4F6F9]">
+        <p className="text-sm text-[#2D3142]">Loading your workspace...</p>
+      </main>
+    )
+  }
 
   return (
-    //page content
-    <main className='flex flex-1 w-screen h-screen m-0 p-0'>
-      {/**Sidebar */}
-      <section className='flex flex-1 flex-col px-2 py-[5dvh] w-auto h-full bg-stone-100'>
+    <SidebarProvider>
+      <AppSidebar
+        userName={user.fullName}
+        userEmail={user.email}
+        role="employee"
+        onLogout={handleLogout}
+      />
+      <SidebarInset className="bg-[#F4F6F9] text-[#2D3142]">
+        <div className="relative overflow-hidden border-b border-[#E6E8EC] bg-gradient-to-br from-[#2D3142] via-[#1A5FD7] to-[#2D3142]">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,#F26327_0%,transparent_40%)] opacity-25" />
+        <div className="relative mx-auto flex w-full max-w-7xl flex-col gap-5 px-6 py-8 md:px-10">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <SidebarTrigger className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white">
+                <PanelLeft className="h-4 w-4" />
+              </SidebarTrigger>
+              <div className="grid size-12 place-items-center rounded-xl bg-white/15 text-sm font-semibold text-white backdrop-blur-sm">
+                {initials}
+              </div>
+              <div>
+                <p className="text-sm text-[#D6D9E0]">Employee workspace</p>
+                <h1 className="text-2xl font-semibold text-white md:text-3xl">
+                  Welcome back, {user.fullName}
+                </h1>
+              </div>
+            </div>
+          </div>
 
-        {/**Avatar */}
-        <div className='flex flex-1 flex-col px-2 py-5 w-full h-full justify-center content-center text-center gap-7'>
-          <Avatar
-            className="w-20 h-auto self-center"
-          >
-            <AvatarImage src="user-placeholder.png"/>
-          </Avatar>
-
-          <div className='flex flex-1 flex-col w-full h-fit'>
-            <h1 className='text-2xl font-normal'>Juan dela Cruz</h1>
-            <h1 className='text-xl font-light'>Employee</h1>
+          <div className="flex flex-wrap items-center gap-5 text-sm text-[#E4E8F0]">
+            <div className="flex items-center gap-2">
+              <CalendarDays className="h-4 w-4" />
+              {formattedDate}
+            </div>
+            <div className="flex items-center gap-2">
+              <Clock3 className="h-4 w-4" />
+              {formattedTime}
+            </div>
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="h-4 w-4" />
+              Secure session active
+            </div>
           </div>
         </div>
-      
-        <div className='flx flex-1 flex-col w-full h-auto'>
-          <Button
-          variant={"outline"}
-          className='w-full mb-3 active:bg-stone-300'
-          >Request for a leave</Button>
-
-          <Button
-          variant={"outline"}
-          className='w-full mb-3 active:bg-stone-300'
-          >View your requests</Button>
-
-          <Button
-          variant={"destructive"}
-          className="w-full mb-3 active:bg-red-800"
-        >
-          Log out
-        </Button>
-        </div>
-
-      {/**Space */}
-      <div className='flex flex-3 w-full h-auto'/>
-
-      <Separator/>
-
-      {/**Live clock */}
-      <div className='flex flex-0 flex-col py-3 w-full h-fit text-center'>
-        <p className='text-xl'>Current time</p>
-        <p className='text-2xl font-light'>{formattedTime.toString()}</p>
       </div>
 
-      </section>
-      <Separator
-        orientation="vertical"
-      />
-      {/**Main content */}
-      <section className='flex flex-5 flex-col w-auto h-full p-20 gap-5'>
-        
-        <div className='flex flex-0 flex-col w-full h-fit gap-2.5'>
-          <div className='flex flex-0 flex-row h-fit w-full content-center gap-5'>
-            <SunIcon className='w-8 h-auto'/>
-            <h1 className='text-4xl text-stone-600 font-semibold'>Good morning!</h1>
-          </div>
+      <section className="mx-auto grid w-full max-w-7xl gap-6 px-6 py-8 md:px-10">
+        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+          <Card className="border-[#E6E8EC] shadow-sm">
+            <CardHeader className="pb-2">
+              <CardDescription>Profile</CardDescription>
+              <CardTitle className="text-lg">Signed in as</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-1">
+              <p className="font-medium">{user.email}</p>
+              <p className="text-sm text-[#6B7280] capitalize">{user.role}</p>
+            </CardContent>
+          </Card>
 
-          <p className='text-xl font-thin'>Today is <span className='font-semibold'>{formattedDate}</span></p>
-        </div>
-        
-        {/**Leave cards */}
-        <div className='flex flex-0 w-full h-fit gap-10'>
-          <Card
-            className='flex-1 h-full'
-          >
-            <CardHeader>
-              <CardTitle><p className='text-2xl'>Number of leaves</p></CardTitle>
+          <Card className="border-[#E6E8EC] shadow-sm">
+            <CardHeader className="pb-2">
               <CardDescription>Available leaves</CardDescription>
+              <CardTitle className="text-lg">Leave balance</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className='w-full h-fit'>
-                <p className='text-5xl font-bold'>5</p>
-              </div>
+            <CardContent className="flex items-end justify-between">
+              <p className="text-4xl font-semibold">5</p>
+              <Plane className="h-5 w-5 text-[#1A5FD7]" />
             </CardContent>
           </Card>
 
-          <Card
-            className='flex-1 h-full'
-          >
-            <CardHeader>
-              <CardTitle><p className='text-2xl'>Pending leaves</p></CardTitle>
-              <CardDescription>Current, pending leave requests</CardDescription>
+          <Card className="border-[#E6E8EC] shadow-sm">
+            <CardHeader className="pb-2">
+              <CardDescription>In progress</CardDescription>
+              <CardTitle className="text-lg">Pending requests</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className='w-full h-fit'>
-                <p className='text-5xl font-bold'>1</p>
-              </div>
-            </CardContent>
-            
-          </Card>
-
-          <Card
-            className='flex-1 h-full'
-          >
-            <CardHeader>
-              <CardTitle><p className='text-2xl'>Rejected leaves</p></CardTitle>
-              <CardDescription>Leave requests rejected by the manager</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className='w-full h-fit'>
-                <p className='text-5xl font-bold'>0</p>
-              </div>
+            <CardContent className="flex items-end justify-between">
+              <p className="text-4xl font-semibold">1</p>
+              <Sparkles className="h-5 w-5 text-[#1A5FD7]" />
             </CardContent>
           </Card>
 
+          <Card className="border-[#E6E8EC] shadow-sm">
+            <CardHeader className="pb-2">
+              <CardDescription>Account</CardDescription>
+              <CardTitle className="text-lg">Member since</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-1">
+              <p className="font-medium">
+                {new Date(user.createdAt).toLocaleDateString('en-US', {
+                  month: 'short',
+                  day: '2-digit',
+                  year: 'numeric',
+                })}
+              </p>
+              <p className="text-sm text-[#6B7280]">Corporate profile verified</p>
+            </CardContent>
+          </Card>
         </div>
 
-        {/**Leaves list */}
-        <div className='flex flex-1 w-full h-auto m-0 p-0 gap-10'>
-          
-          {/**Your leave requests */}
-          <Card
-            className='flex-1 h-full w-auto'
-          >
+        <div className="grid gap-6 lg:grid-cols-3">
+          <Card className="border-[#E6E8EC] shadow-sm lg:col-span-2">
             <CardHeader>
-              <CardTitle><p className='text-2xl'>Your leave requests</p></CardTitle>
-              <CardDescription>Click on each item to view your request status</CardDescription>
+              <CardTitle className="text-xl">Recent Leave Activity</CardTitle>
+              <CardDescription>
+                Dynamic profile is live. Leave API integration can be connected next.
+              </CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className='w-full h-fit border-t-3'>
-                <LeaveRequestItem
-                  title="Service-incentive Leave (SIL)"
-                  dateTime="February 25, 2026 | 07:15:34 AM"
-                />
-                <LeaveRequestItem
-                  title="Maternity Leave"
-                  dateTime="February 25, 2026 | 07:15:34 AM"
-                />
-                <LeaveRequestItem
-                  title="Sick Leave"
-                  dateTime="February 25, 2026 | 07:15:34 AM"
-                />
-              </div>
-
-              <Button
-                variant={"outline"}
-                
-              />
+            <CardContent className="space-y-4">
+              {[
+                {
+                  title: 'Vacation Leave',
+                  status: 'Pending',
+                  when: 'Submitted 2 days ago',
+                },
+                {
+                  title: 'Sick Leave',
+                  status: 'Approved',
+                  when: 'Approved last week',
+                },
+                {
+                  title: 'Emergency Leave',
+                  status: 'Rejected',
+                  when: 'Reviewed 3 weeks ago',
+                },
+              ].map((item) => (
+                <div
+                  key={item.title + item.when}
+                  className="flex flex-col gap-2 rounded-xl border border-[#E6E8EC] p-4 sm:flex-row sm:items-center sm:justify-between"
+                >
+                  <div>
+                    <p className="font-medium">{item.title}</p>
+                    <p className="text-sm text-[#6B7280]">{item.when}</p>
+                  </div>
+                  <span className="inline-flex w-fit rounded-full bg-[#EEF4FF] px-3 py-1 text-xs font-medium text-[#1A5FD7]">
+                    {item.status}
+                  </span>
+                </div>
+              ))}
             </CardContent>
           </Card>
 
-          {/**Rejected leave requests */}
-          <Calendar
-            mode="single"
-            selected={date}
-            onSelect={setDate}
-            className="rounded-lg border"
-          />
-
+          <Card className="border-[#E6E8EC] shadow-sm">
+            <CardHeader>
+              <CardTitle className="text-xl">Account Snapshot</CardTitle>
+              <CardDescription>Fetched from authenticated session</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4 text-sm">
+              <div className="flex items-center gap-3">
+                <UserRound className="h-4 w-4 text-[#1A5FD7]" />
+                <span>{user.fullName}</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <ShieldCheck className="h-4 w-4 text-[#1A5FD7]" />
+                <span>{user.email}</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <Clock3 className="h-4 w-4 text-[#1A5FD7]" />
+                <span>
+                  Last login:{' '}
+                  {new Date(user.lastLoginAt).toLocaleString('en-US', {
+                    month: 'short',
+                    day: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
+                </span>
+              </div>
+            </CardContent>
+          </Card>
         </div>
-
-        <div className='flex flex-1 h-auto w-full'/>
-      </section>
-    </main>
+        </section>
+      </SidebarInset>
+    </SidebarProvider>
   )
 }
 
-export default RouteComponent;
+export default RouteComponent
