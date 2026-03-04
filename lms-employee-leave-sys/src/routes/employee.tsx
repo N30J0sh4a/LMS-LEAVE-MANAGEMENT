@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router'
+import { createFileRoute, Link, redirect, useNavigate } from '@tanstack/react-router'
 import { onAuthStateChanged, signOut } from 'firebase/auth'
 import {
   CalendarDays,
@@ -17,6 +17,7 @@ import { clearUserProfile, getUserProfile, saveUserProfile } from '../lib/sessio
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card'
 import { AppSidebar } from '../components/app-sidebar'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '../components/ui/sidebar'
+import { Button } from '@/components/ui/button'
 
 export const Route = createFileRoute('/employee')({
   beforeLoad: () => {
@@ -255,7 +256,7 @@ function RouteComponent() {
               ].map((item) => (
                 <div
                   key={item.title + item.when}
-                  className="flex flex-col gap-2 rounded-xl border border-[#E6E8EC] p-4 sm:flex-row sm:items-center sm:justify-between"
+                  className="flex flex-col gap-2 rounded-xl border border-[#E6E8EC] p-4 sm:flex-row sm:items-center sm:justify-between hover:cursor-pointer hover:bg-stone-100"
                 >
                   <div>
                     <p className="font-medium">{item.title}</p>
@@ -266,6 +267,13 @@ function RouteComponent() {
                   </span>
                 </div>
               ))}
+              <Button
+                asChild
+                variant={"outline"}
+                className='w-full'
+              >
+                <Link to='/leaves-list/requests-list'>View your requests</Link>
+              </Button>
             </CardContent>
           </Card>
 
