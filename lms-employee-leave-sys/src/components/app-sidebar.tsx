@@ -21,7 +21,7 @@ export function AppSidebar({ userName, userEmail, role, onLogout }: AppSidebarPr
     role === "employee"
       ? [
           { label: "Dashboard", to: "/employee", icon: LayoutDashboard },
-          { label: "My Requests", to: "/employee", icon: CalendarClock },
+          { label: "My Requests", to: "/leaves-list/requests-list", icon: CalendarClock },
           { label: "Request for a leave", to: "/request-leaves/request-leave", icon: Notebook}
         ]
       : [

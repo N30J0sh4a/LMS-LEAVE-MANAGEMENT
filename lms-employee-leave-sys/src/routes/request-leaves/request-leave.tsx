@@ -4,6 +4,7 @@ import { getUserProfile, clearUserProfile, saveUserProfile } from '../../lib/ses
 import { loginUserSession, type UserProfile } from '@/lib/auth-api'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '../../components/ui/sidebar'
 import { onAuthStateChanged } from 'firebase/auth'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { auth } from '../../lib/firebase'
 import { addDays, format } from "date-fns"
 import type { DateRange } from 'react-day-picker'
@@ -15,6 +16,7 @@ import { onAuthStateChanged, signOut } from 'firebase/auth'
 */
 
 import {
+    ArrowDown01,
     ArrowLeft,
     Building,
   CalendarDays,
@@ -56,10 +58,14 @@ function RouteComponent() {
     const [loadingProfile, setLoadingProfile] = useState(true)
     const [currentTime, setCurrentTime] = useState(() => new Date());
     const navigate = useNavigate();
+<<<<<<< HEAD
     const [leaveType, setLeaveType] = useState('')
     const [submitting, setSubmitting] = useState(false)
     const [submitError, setSubmitError] = useState<string | null>(null)
     const [submitSuccess, setSubmitSuccess] = useState(false)
+=======
+    const [position, setPosition] = useState("Choose leave type")
+>>>>>>> c2ff3849bb6523cde5e9fb0fd9d661d07d1a9edb
 
     {/**Going back one page */}
     const router = useRouter();
@@ -195,7 +201,7 @@ function RouteComponent() {
     return <main className='w-screen h-screen flex flex-col'>
         <SidebarProvider className='flex flex-1 flex-col w-full h-fit bg-radial'>
             <SidebarInset className='flex flex-0 w-full h-auto'>
-                <div className="w-full relative overflow-hidden border-b border-[#E6E8EC] bg-gradient-to-br from-[#2D3142] via-[#1A5FD7] to-[#2D3142]">
+                <div className="w-full relative overflow-hidden border-b border-[#E6E8EC] bg-linear-to-br from-[#2D3142] via-[#1A5FD7] to-[#2D3142]">
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,#F26327_0%,transparent_40%)] opacity-25" />
                 <div className="relative mx-auto flex w-full max-w-7xl flex-col gap-5 px-6 py-8 md:px-10">
                 <div className="flex items-center justify-between gap-4">
@@ -207,9 +213,9 @@ function RouteComponent() {
                         {initials}
                     </div>
                     <div>
-                        <p className="text-sm text-[#D6D9E0]">Employee</p>
+                        <p className="text-sm text-[#D6D9E0]">EMPLOYEE</p>
                         <h1 className="text-2xl font-semibold text-white md:text-3xl">
-                        Request for a leave
+                        Leave request form
                         </h1>
                     </div>
                     </div>
@@ -285,6 +291,7 @@ function RouteComponent() {
                             </div>
                         </div>
 
+<<<<<<< HEAD
                         <Label htmlFor='employee-name' className='mb-2 font-normal mt-5 text-stone-700'>Nature of leave to be availed (maternity / sick / available) <span className='text-red-800'>*</span></Label>
                         <InputGroup>
                             <InputGroupAddon>
@@ -293,10 +300,33 @@ function RouteComponent() {
                             <InputGroupInput id='leave-type' name='leave-type' placeholder='Enter leave type' value={leaveType} onChange={(e) => setLeaveType(e.target.value)}>
                             </InputGroupInput>
                         </InputGroup>
+=======
+                        <Label htmlFor='employee-name' className='mb-2 font-normal mt-5 text-stone-700'>Nature of leave to be availed (<i>Sick / Paid / Emergency / Unpaid</i>) <span className='text-red-800'>*</span></Label>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant={'outline'}
+                                    >
+                                    <ArrowDown01/>
+                                    {position == null ? "Choose leave type" : position}
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="w-32">
+                                <DropdownMenuGroup>
+                                <DropdownMenuLabel>Leave types</DropdownMenuLabel>
+                                <DropdownMenuRadioGroup value={position} onValueChange={setPosition}>
+                                    <DropdownMenuRadioItem value="Sick">Sick</DropdownMenuRadioItem>
+                                    <DropdownMenuRadioItem value="Vacation">Vacation</DropdownMenuRadioItem>
+                                    <DropdownMenuRadioItem value="Emergency">Emergency</DropdownMenuRadioItem>
+                                    <DropdownMenuRadioItem value="Unpaid">Unpaid</DropdownMenuRadioItem>
+                                </DropdownMenuRadioGroup>
+                                </DropdownMenuGroup>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+>>>>>>> c2ff3849bb6523cde5e9fb0fd9d661d07d1a9edb
 
                         {/**Pick leave date range */}
                         <Field className="mx-auto w-full mt-5">
-                            <FieldLabel htmlFor="date-picker-range" className='text-stone-700 font-normal'>Date Picker Range</FieldLabel>
+                            <FieldLabel htmlFor="date-picker-range" className='text-stone-700 font-normal'>Date Picker Range <span className='text-red-800'>*</span></FieldLabel>
                             <Popover>
                                 <PopoverTrigger asChild>
                                 <Button
@@ -329,7 +359,7 @@ function RouteComponent() {
                                 />
                                 </PopoverContent>
                             </Popover>
-                            </Field>
+                        </Field>
 
                         {/**Reason */}
                         <Field className='mt-5'>
@@ -337,6 +367,7 @@ function RouteComponent() {
                             <Textarea id="textarea-message" placeholder="Elaborate your reason for requesting a leave." />
                         </Field>
 
+<<<<<<< HEAD
                         {submitError && (
                             <p className='text-red-600 text-sm mt-2'>{submitError}</p>
                         )}
@@ -345,6 +376,13 @@ function RouteComponent() {
                         )}
                         <Button onClick={handleSubmit} disabled={submitting} className='my-5 w-full hover:cursor-pointer'>
                             {submitting ? 'Submitting...' : 'Submit'}
+=======
+                        <Button
+                            asChild
+                            className='my-5 w-full hover:cursor-pointer'
+                        >
+                            <Link to='/leaves-list/requests-list'>Submit</Link>
+>>>>>>> c2ff3849bb6523cde5e9fb0fd9d661d07d1a9edb
                         </Button>
                     </CardContent>
                 </Card>
