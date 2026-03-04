@@ -7,6 +7,7 @@ import { onAuthStateChanged } from 'firebase/auth'
 import { auth } from '../../lib/firebase'
 import { addDays, format } from "date-fns"
 import type { DateRange } from 'react-day-picker'
+import { submitLeave } from '@/lib/leave-api'
 
 /* 
 import { auth } from '../lib/firebase'
@@ -55,6 +56,10 @@ function RouteComponent() {
     const [loadingProfile, setLoadingProfile] = useState(true)
     const [currentTime, setCurrentTime] = useState(() => new Date());
     const navigate = useNavigate();
+    const [leaveType, setLeaveType] = useState('')
+    const [submitting, setSubmitting] = useState(false)
+    const [submitError, setSubmitError] = useState<string | null>(null)
+    const [submitSuccess, setSubmitSuccess] = useState(false)
 
     {/**Going back one page */}
     const router = useRouter();
@@ -70,6 +75,33 @@ function RouteComponent() {
         from: new Date(new Date().getFullYear(), 0, 20),
         to: addDays(new Date(new Date().getFullYear(), 0, 20), 20),
     })
+
+    {/**Submit handler function */}
+    const handleSubmit = async () => {
+        if (!user) return
+
+        if (!leaveType || !date?.from || !date?.to) {
+            setSubmitError('Please fill in all required fields.')
+            return
+        }
+
+        setSubmitting(true)
+        setSubmitError(null)
+
+        try {
+            await submitLeave({
+            employeeId: user.uid,
+            leaveType: leaveType.toUpperCase(),
+            startDate: format(date.from, 'yyyy-MM-dd'),
+            endDate: format(date.to, 'yyyy-MM-dd'),
+        })
+        setSubmitSuccess(true)
+        } catch (err) {
+            setSubmitError(err instanceof Error ? err.message : 'Something went wrong.')
+        } finally {
+            setSubmitting(false)
+        }
+    }
 
     useEffect(() => {
         const timer = window.setInterval(() => {
@@ -258,7 +290,7 @@ function RouteComponent() {
                             <InputGroupAddon>
                                 <User/>
                             </InputGroupAddon>
-                            <InputGroupInput id='employee-name' name='employee-name' placeholder='Enter leave type'>
+                            <InputGroupInput id='leave-type' name='leave-type' placeholder='Enter leave type' value={leaveType} onChange={(e) => setLeaveType(e.target.value)}>
                             </InputGroupInput>
                         </InputGroup>
 
@@ -305,11 +337,14 @@ function RouteComponent() {
                             <Textarea id="textarea-message" placeholder="Elaborate your reason for requesting a leave." />
                         </Field>
 
-                        <Button
-                            asChild
-                            className='my-5 w-full hover:cursor-pointer'
-                        >
-                            <Link to='/request-leaves/request-leave'>Submit</Link>
+                        {submitError && (
+                            <p className='text-red-600 text-sm mt-2'>{submitError}</p>
+                        )}
+                        {submitSuccess && (
+                            <p className='text-green-600 text-sm mt-2'>Leave request submitted successfully!</p>
+                        )}
+                        <Button onClick={handleSubmit} disabled={submitting} className='my-5 w-full hover:cursor-pointer'>
+                            {submitting ? 'Submitting...' : 'Submit'}
                         </Button>
                     </CardContent>
                 </Card>
