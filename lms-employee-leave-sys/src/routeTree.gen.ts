@@ -13,6 +13,8 @@ import { Route as ManagerRouteImport } from './routes/manager'
 import { Route as EmployeeRouteImport } from './routes/employee'
 import { Route as CreateAccountRouteImport } from './routes/create-account'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as RequestLeavesRequestLeaveRouteImport } from './routes/request-leaves/request-leave'
+import { Route as LeavesListRequestsListRouteImport } from './routes/leaves-list/requests-list'
 
 const ManagerRoute = ManagerRouteImport.update({
   id: '/manager',
@@ -34,18 +36,33 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RequestLeavesRequestLeaveRoute =
+  RequestLeavesRequestLeaveRouteImport.update({
+    id: '/request-leaves/request-leave',
+    path: '/request-leaves/request-leave',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const LeavesListRequestsListRoute = LeavesListRequestsListRouteImport.update({
+  id: '/leaves-list/requests-list',
+  path: '/leaves-list/requests-list',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/create-account': typeof CreateAccountRoute
   '/employee': typeof EmployeeRoute
   '/manager': typeof ManagerRoute
+  '/leaves-list/requests-list': typeof LeavesListRequestsListRoute
+  '/request-leaves/request-leave': typeof RequestLeavesRequestLeaveRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/create-account': typeof CreateAccountRoute
   '/employee': typeof EmployeeRoute
   '/manager': typeof ManagerRoute
+  '/leaves-list/requests-list': typeof LeavesListRequestsListRoute
+  '/request-leaves/request-leave': typeof RequestLeavesRequestLeaveRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -53,13 +70,34 @@ export interface FileRoutesById {
   '/create-account': typeof CreateAccountRoute
   '/employee': typeof EmployeeRoute
   '/manager': typeof ManagerRoute
+  '/leaves-list/requests-list': typeof LeavesListRequestsListRoute
+  '/request-leaves/request-leave': typeof RequestLeavesRequestLeaveRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/create-account' | '/employee' | '/manager'
+  fullPaths:
+    | '/'
+    | '/create-account'
+    | '/employee'
+    | '/manager'
+    | '/leaves-list/requests-list'
+    | '/request-leaves/request-leave'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/create-account' | '/employee' | '/manager'
-  id: '__root__' | '/' | '/create-account' | '/employee' | '/manager'
+  to:
+    | '/'
+    | '/create-account'
+    | '/employee'
+    | '/manager'
+    | '/leaves-list/requests-list'
+    | '/request-leaves/request-leave'
+  id:
+    | '__root__'
+    | '/'
+    | '/create-account'
+    | '/employee'
+    | '/manager'
+    | '/leaves-list/requests-list'
+    | '/request-leaves/request-leave'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -67,6 +105,8 @@ export interface RootRouteChildren {
   CreateAccountRoute: typeof CreateAccountRoute
   EmployeeRoute: typeof EmployeeRoute
   ManagerRoute: typeof ManagerRoute
+  LeavesListRequestsListRoute: typeof LeavesListRequestsListRoute
+  RequestLeavesRequestLeaveRoute: typeof RequestLeavesRequestLeaveRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -99,6 +139,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/request-leaves/request-leave': {
+      id: '/request-leaves/request-leave'
+      path: '/request-leaves/request-leave'
+      fullPath: '/request-leaves/request-leave'
+      preLoaderRoute: typeof RequestLeavesRequestLeaveRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/leaves-list/requests-list': {
+      id: '/leaves-list/requests-list'
+      path: '/leaves-list/requests-list'
+      fullPath: '/leaves-list/requests-list'
+      preLoaderRoute: typeof LeavesListRequestsListRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -107,6 +161,8 @@ const rootRouteChildren: RootRouteChildren = {
   CreateAccountRoute: CreateAccountRoute,
   EmployeeRoute: EmployeeRoute,
   ManagerRoute: ManagerRoute,
+  LeavesListRequestsListRoute: LeavesListRequestsListRoute,
+  RequestLeavesRequestLeaveRoute: RequestLeavesRequestLeaveRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

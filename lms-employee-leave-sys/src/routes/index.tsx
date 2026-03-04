@@ -200,7 +200,7 @@ function RouteComponent() {
                 </Label>
               </div>
 
-              <Button variant="link" className="text-[#1A5FD7] p-0" type="button">
+              <Button variant="link" className="text-[#1A5FD7] p-0 hover:cursor-pointer" type="button">
                 Forgot password?
               </Button>
             </div>
@@ -210,7 +210,7 @@ function RouteComponent() {
             ) : null}
 
             <Button
-              className="w-full bg-[#1A5FD7] hover:bg-[#174bb0] text-white font-medium py-3 rounded-lg transition"
+              className="w-full bg-[#1A5FD7] hover:bg-[#174bb0] hover:cursor-pointer text-white font-medium py-3 rounded-lg transition"
               onClick={handleEmailLogin}
               disabled={isLoading}
             >
@@ -220,7 +220,7 @@ function RouteComponent() {
             <Button
               type="button"
               variant="outline"
-              className="w-full border-[#E6E8EC] text-[#2D3142] hover:bg-[#F6F8FC]"
+              className="w-full border-[#E6E8EC] text-[#2D3142] hover:bg-[#F6F8FC] hover:cursor-pointer"
               onClick={handleGoogleLogin}
               disabled={isLoading}
             >

@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/sidebar"
 import { Link } from "@tanstack/react-router"
 import { Button } from "@/components/ui/button"
-import { BriefcaseBusiness, CalendarClock, LayoutDashboard, LogOut, UserRound } from "lucide-react"
+import { BriefcaseBusiness, CalendarClock, LayoutDashboard, LogOut, Notebook, UserRound } from "lucide-react"
 
 type AppSidebarProps = {
   userName: string
@@ -22,6 +22,7 @@ export function AppSidebar({ userName, userEmail, role, onLogout }: AppSidebarPr
       ? [
           { label: "Dashboard", to: "/employee", icon: LayoutDashboard },
           { label: "My Requests", to: "/employee", icon: CalendarClock },
+          { label: "Request for a leave", to: "/request-leaves/request-leave", icon: Notebook}
         ]
       : [
           { label: "Dashboard", to: "/manager", icon: LayoutDashboard },
