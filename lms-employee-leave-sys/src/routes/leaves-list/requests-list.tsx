@@ -19,6 +19,8 @@ import {
   CalendarDays,
   CalendarIcon,
   Clock3,
+  Home,
+  NotebookPen,
   PanelLeft,
   ShieldCheck,
 } from 'lucide-react'
@@ -68,12 +70,7 @@ function RouteComponent() {
         
             return () => window.clearInterval(timer)
         }, [])
-
-    {/**Change page title */}
-    useEffect(() => {
-        document.title = "Your leave requests"
-    }, [])
-
+    
     useEffect(() => {
         const timer = window.setInterval(() => {
           setCurrentTime(new Date())
@@ -81,6 +78,10 @@ function RouteComponent() {
     
         return () => window.clearInterval(timer)
     }, [])
+
+    useEffect(() => {
+        document.title = "Request List"
+      }, [])
     
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -293,6 +294,27 @@ function RouteComponent() {
                       </PopoverContent>
                     </Popover>
                   </Field>
+
+                  <div className='flex flex-auto w-full h-fit'/>
+
+                  <Button
+                    asChild
+                    variant={"outline"}
+                  >
+                    <Link to={user.role == "employee" ? "/employee" : "/manager"}>
+                          <Home/>
+                          <p className='text-stone-700'>Return to dashboard</p>
+                    </Link>
+                  </Button>
+                  <Button
+                    asChild
+                    variant={"outline"}
+                  >
+                    <Link to="/request-leaves/request-leave">
+                          <NotebookPen/>
+                          <p className='text-stone-700'>Request new leave</p>
+                    </Link>
+                  </Button>
                 </div>
 
                 <div className='flex flex-1 flex-col gap-5'>
