@@ -58,14 +58,12 @@ function RouteComponent() {
     const [loadingProfile, setLoadingProfile] = useState(true)
     const [currentTime, setCurrentTime] = useState(() => new Date());
     const navigate = useNavigate();
-<<<<<<< HEAD
     const [leaveType, setLeaveType] = useState('')
     const [submitting, setSubmitting] = useState(false)
     const [submitError, setSubmitError] = useState<string | null>(null)
     const [submitSuccess, setSubmitSuccess] = useState(false)
-=======
+
     const [position, setPosition] = useState("Choose leave type")
->>>>>>> c2ff3849bb6523cde5e9fb0fd9d661d07d1a9edb
 
     {/**Going back one page */}
     const router = useRouter();
@@ -86,7 +84,7 @@ function RouteComponent() {
     const handleSubmit = async () => {
         if (!user) return
 
-        if (!leaveType || !date?.from || !date?.to) {
+        if (!position || position === 'Choose leave type' || !date?.from || !date?.to) {
             setSubmitError('Please fill in all required fields.')
             return
         }
@@ -97,7 +95,7 @@ function RouteComponent() {
         try {
             await submitLeave({
             employeeId: user.uid,
-            leaveType: leaveType.toUpperCase(),
+            leaveType: position.toUpperCase(),
             startDate: format(date.from, 'yyyy-MM-dd'),
             endDate: format(date.to, 'yyyy-MM-dd'),
         })
@@ -291,16 +289,7 @@ function RouteComponent() {
                             </div>
                         </div>
 
-<<<<<<< HEAD
-                        <Label htmlFor='employee-name' className='mb-2 font-normal mt-5 text-stone-700'>Nature of leave to be availed (maternity / sick / available) <span className='text-red-800'>*</span></Label>
-                        <InputGroup>
-                            <InputGroupAddon>
-                                <User/>
-                            </InputGroupAddon>
-                            <InputGroupInput id='leave-type' name='leave-type' placeholder='Enter leave type' value={leaveType} onChange={(e) => setLeaveType(e.target.value)}>
-                            </InputGroupInput>
-                        </InputGroup>
-=======
+
                         <Label htmlFor='employee-name' className='mb-2 font-normal mt-5 text-stone-700'>Nature of leave to be availed (<i>Sick / Paid / Emergency / Unpaid</i>) <span className='text-red-800'>*</span></Label>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -322,7 +311,6 @@ function RouteComponent() {
                                 </DropdownMenuGroup>
                             </DropdownMenuContent>
                         </DropdownMenu>
->>>>>>> c2ff3849bb6523cde5e9fb0fd9d661d07d1a9edb
 
                         {/**Pick leave date range */}
                         <Field className="mx-auto w-full mt-5">
@@ -367,7 +355,7 @@ function RouteComponent() {
                             <Textarea id="textarea-message" placeholder="Elaborate your reason for requesting a leave." />
                         </Field>
 
-<<<<<<< HEAD
+
                         {submitError && (
                             <p className='text-red-600 text-sm mt-2'>{submitError}</p>
                         )}
@@ -376,13 +364,9 @@ function RouteComponent() {
                         )}
                         <Button onClick={handleSubmit} disabled={submitting} className='my-5 w-full hover:cursor-pointer'>
                             {submitting ? 'Submitting...' : 'Submit'}
-=======
-                        <Button
-                            asChild
-                            className='my-5 w-full hover:cursor-pointer'
-                        >
-                            <Link to='/leaves-list/requests-list'>Submit</Link>
->>>>>>> c2ff3849bb6523cde5e9fb0fd9d661d07d1a9edb
+
+                        
+
                         </Button>
                     </CardContent>
                 </Card>
