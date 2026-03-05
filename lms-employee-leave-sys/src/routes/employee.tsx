@@ -248,7 +248,6 @@ function RouteComponent() {
                   status="Pending"
                 />
 
-                <p>This month</p>
                 <RequestLeaveItem
                   title="Sick Leave"
                   time="Approved last week"

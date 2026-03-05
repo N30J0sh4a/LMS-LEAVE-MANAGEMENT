@@ -158,7 +158,7 @@ function RouteComponent() {
 
     {/**CONTENT */}
     return (
-      <main className="w-screen h-screen flex flex-col">
+      <main className="w-full h-screen flex flex-col">
         <SidebarProvider className="flex flex-1 flex-col w-full h-fit bg-radial">
           <SidebarInset className="flex flex-0 w-full h-auto">
             <div className="w-full relative overflow-hidden border-b border-[#E6E8EC] bg-linear-to-br from-[#2D3142] via-[#1A5FD7] to-[#2D3142]">
