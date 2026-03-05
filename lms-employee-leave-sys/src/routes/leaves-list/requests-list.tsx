@@ -1,23 +1,17 @@
 import { createFileRoute, Link, redirect, useNavigate, useRouter } from '@tanstack/react-router'
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { getUserProfile, clearUserProfile, saveUserProfile } from '../../lib/session'
 import { loginUserSession, type UserProfile } from '@/lib/auth-api'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '../../components/ui/sidebar'
-import { onAuthStateChanged } from 'firebase/auth'
-import { auth } from '../../lib/firebase'
-import { addDays, format } from "date-fns"
-import type { DateRange } from 'react-day-picker'
-
-/* 
-import { auth } from '../lib/firebase'
 import { onAuthStateChanged, signOut } from 'firebase/auth'
-*/
+import { auth } from '../../lib/firebase'
+import { AppSidebar } from '@/components/app-sidebar'
+import { cancelLeave, listEmployeeLeaves, type LeaveRequest, type LeaveStatus } from '@/lib/leaves-api'
+import { toast } from 'sonner'
 
 import {
-  ArrowDown01,
   ArrowLeft,
   CalendarDays,
-  CalendarIcon,
   Clock3,
   Home,
   NotebookPen,
@@ -25,298 +19,317 @@ import {
   ShieldCheck,
 } from 'lucide-react'
 import { Card } from '@/components/ui/card'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
-import { Field } from '@/components/ui/field'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Calendar } from '@/components/ui/calendar'
 import RequestLeaveItem from '@/components/request-leave-item'
 
 export const Route = createFileRoute('/leaves-list/requests-list')({
-    beforeLoad: () => {
-        if (typeof window === 'undefined') {
-          return
-        }
-        const profile = getUserProfile()
-        if (!profile || profile.role !== 'employee') {
-          throw redirect({ to: '/' })
-        }
-      },
-    component: RouteComponent,
+  beforeLoad: () => {
+    if (typeof window === 'undefined') {
+      return
+    }
+    const profile = getUserProfile()
+    if (!profile || profile.role !== 'employee') {
+      throw redirect({ to: '/' })
+    }
+  },
+  component: RouteComponent,
 })
 
-
 function RouteComponent() {
+  const [user, setUser] = useState<UserProfile | null>(() => getUserProfile())
+  const [loadingProfile, setLoadingProfile] = useState(true)
+  const [currentTime, setCurrentTime] = useState(() => new Date())
+  const [leaves, setLeaves] = useState<LeaveRequest[]>([])
+  const [loadingLeaves, setLoadingLeaves] = useState(true)
+  const [withdrawingLeaveId, setWithdrawingLeaveId] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<'ALL' | LeaveStatus>('ALL')
+  const [leavesError, setLeavesError] = useState('')
+  const navigate = useNavigate()
+  const router = useRouter()
 
-    {/**React hooks */}
-    const [user, setUser] = useState<UserProfile | null>(() => getUserProfile())
-    const [loadingProfile, setLoadingProfile] = useState(true)
-    const [currentTime, setCurrentTime] = useState(() => new Date());
-    const navigate = useNavigate();
+  const onBack = () => router.history.back()
 
-    {/**Going back one page */}
-    const router = useRouter();
-    const [position, setPosition] = useState("Filter list by")
-    const onBack = () => router.history.back();
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setCurrentTime(new Date())
+    }, 1000)
 
-    const [date, setDate] = useState<DateRange | undefined>({
-            from: new Date(new Date().getFullYear(), 0, 20),
-            to: addDays(new Date(new Date().getFullYear(), 0, 20), 20),
-        })
-    
-        useEffect(() => {
-            const timer = window.setInterval(() => {
-              setCurrentTime(new Date())
-            }, 1000)
-        
-            return () => window.clearInterval(timer)
-        }, [])
-    
-    useEffect(() => {
-        const timer = window.setInterval(() => {
-          setCurrentTime(new Date())
-        }, 1000)
-    
-        return () => window.clearInterval(timer)
-    }, [])
+    return () => window.clearInterval(timer)
+  }, [])
 
-    useEffect(() => {
-        document.title = "Request List"
-      }, [])
-    
-    useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-            if (!firebaseUser) {
-                clearUserProfile()
-                setUser(null)
-                setLoadingProfile(false)
-                await navigate({ to: '/' })
-                return
-            }
-    
-            try {
-                const idToken = await firebaseUser.getIdToken()
-                const profile = await loginUserSession(idToken, {
-              role: 'employee',
-              autoCreate: false,
-            })
-    
-            saveUserProfile(profile)
-            setUser(profile)
-          } catch {
-            clearUserProfile()
-            setUser(null)
-            await navigate({ to: '/' })
-          } finally {
-            setLoadingProfile(false)
-          }
-        })
-    
-        return () => unsubscribe()
-      }, [navigate])
-    
-      const formattedDate = useMemo(
-        () =>
-          currentTime.toLocaleDateString('en-US', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-          }),
-        [currentTime]
-      )
-    
-      const formattedTime = useMemo(
-        () =>
-          currentTime.toLocaleTimeString('en-US', {
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-          }),
-        [currentTime]
-      )
-    
-      const initials = useMemo(() => {
-        if (!user?.fullName) {
-          return 'U'
-        }
-        return user.fullName
-          .split(' ')
-          .filter(Boolean)
-          .slice(0, 2)
-          .map((part) => part[0]?.toUpperCase() ?? '')
-          .join('')
-      }, [user?.fullName])
-  
-      if (loadingProfile || !user) {
-        return (
-          <main className="min-h-screen grid place-items-center bg-[#F4F6F9]">
-            <p className="text-sm text-[#2D3142]">Loading your workspace...</p>
-          </main>
-        )
+  useEffect(() => {
+    document.title = 'My Requests'
+  }, [])
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (!firebaseUser) {
+        clearUserProfile()
+        setUser(null)
+        setLoadingProfile(false)
+        await navigate({ to: '/' })
+        return
       }
 
-    {/**CONTENT */}
-    return (
-      <main className="w-screen h-screen flex flex-col">
-        <SidebarProvider className="flex flex-1 flex-col w-full h-fit bg-radial">
-          <SidebarInset className="flex flex-0 w-full h-auto">
-            <div className="w-full relative overflow-hidden border-b border-[#E6E8EC] bg-linear-to-br from-[#2D3142] via-[#1A5FD7] to-[#2D3142]">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,#F26327_0%,transparent_40%)] opacity-25" />
-              <div className="relative mx-auto flex w-full max-w-7xl flex-col gap-5 px-6 py-8 md:px-10">
-                <div className="flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-4">
-                    <SidebarTrigger className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white">
-                      <PanelLeft className="h-4 w-4" />
-                    </SidebarTrigger>
-                    <div className="grid size-12 place-items-center rounded-xl bg-white/15 text-sm font-semibold text-white backdrop-blur-sm">
-                      {initials}
-                    </div>
-                    <div>
-                      <p className="text-sm text-[#D6D9E0]">Employee</p>
-                      <h1 className="text-2xl font-semibold text-white md:text-3xl">
-                        Your requests
-                      </h1>
-                    </div>
-                  </div>
-                </div>
+      try {
+        const idToken = await firebaseUser.getIdToken()
+        const profile = await loginUserSession(idToken, {
+          role: 'employee',
+          autoCreate: false,
+        })
 
-                <div className="flex flex-wrap items-center gap-5 text-sm text-[#E4E8F0]">
-                  <div className="flex items-center gap-2">
-                    <CalendarDays className="h-4 w-4" />
-                    {formattedDate}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Clock3 className="h-4 w-4" />
-                    {formattedTime}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <ShieldCheck className="h-4 w-4" />
-                    Secure session active
-                  </div>
+        saveUserProfile(profile)
+        setUser(profile)
+      } catch {
+        clearUserProfile()
+        setUser(null)
+        await navigate({ to: '/' })
+      } finally {
+        setLoadingProfile(false)
+      }
+    })
+
+    return () => unsubscribe()
+  }, [navigate])
+
+  const fetchLeaves = async (employeeId: string) => {
+    try {
+      setLoadingLeaves(true)
+      setLeavesError('')
+      const items = await listEmployeeLeaves(employeeId)
+      setLeaves(items)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to load your leave requests.'
+      setLeavesError(message)
+      toast.error(message)
+    } finally {
+      setLoadingLeaves(false)
+    }
+  }
+
+  useEffect(() => {
+    if (!user) {
+      return
+    }
+    void fetchLeaves(user.uid)
+  }, [user?.uid])
+
+  const filteredLeaves = useMemo(() => {
+    if (activeTab === 'ALL') {
+      return leaves
+    }
+    return leaves.filter((leave) => leave.status === activeTab)
+  }, [activeTab, leaves])
+
+  const statusCounts = useMemo(
+    () => ({
+      ALL: leaves.length,
+      PENDING: leaves.filter((leave) => leave.status === 'PENDING').length,
+      APPROVED: leaves.filter((leave) => leave.status === 'APPROVED').length,
+      REJECTED: leaves.filter((leave) => leave.status === 'REJECTED').length,
+      CANCELLED: leaves.filter((leave) => leave.status === 'CANCELLED').length,
+    }),
+    [leaves]
+  )
+
+  const formattedDate = useMemo(
+    () =>
+      currentTime.toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      }),
+    [currentTime]
+  )
+
+  const formattedTime = useMemo(
+    () =>
+      currentTime.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      }),
+    [currentTime]
+  )
+
+  const initials = useMemo(() => {
+    if (!user?.fullName) {
+      return 'U'
+    }
+    return user.fullName
+      .split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase() ?? '')
+      .join('')
+  }, [user?.fullName])
+
+  const handleLogout = async () => {
+    await signOut(auth)
+    clearUserProfile()
+    await navigate({ to: '/' })
+  }
+
+  const handleWithdraw = async (leave: LeaveRequest) => {
+    if (!user) {
+      return
+    }
+
+    if (leave.status !== 'PENDING') {
+      toast.warning('Only pending requests can be withdrawn.')
+      return
+    }
+
+    try {
+      setWithdrawingLeaveId(leave.leaveId)
+      await cancelLeave(leave.leaveId, user.uid)
+      toast.success('Leave request withdrawn successfully.')
+      await fetchLeaves(user.uid)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to withdraw leave request.'
+      toast.error(message)
+    } finally {
+      setWithdrawingLeaveId(null)
+    }
+  }
+
+  if (loadingProfile || !user) {
+    return (
+      <main className="min-h-screen grid place-items-center bg-[#F4F6F9]">
+        <p className="text-sm text-[#2D3142]">Loading your workspace...</p>
+      </main>
+    )
+  }
+
+  return (
+    <SidebarProvider>
+      <AppSidebar
+        userName={user.fullName}
+        userEmail={user.email}
+        role="employee"
+        currentPath="/leaves-list/requests-list"
+        onLogout={handleLogout}
+      />
+      <SidebarInset className="min-h-screen bg-[#F4F6F9] text-[#2D3142]">
+        <div className="w-full relative overflow-hidden border-b border-[#E6E8EC] bg-linear-to-br from-[#2D3142] via-[#1A5FD7] to-[#2D3142]">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,#F26327_0%,transparent_40%)] opacity-25" />
+          <div className="relative mx-auto flex w-full max-w-7xl flex-col gap-5 px-6 py-8 md:px-10">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <SidebarTrigger className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white">
+                  <PanelLeft className="h-4 w-4" />
+                </SidebarTrigger>
+                <div className="grid size-12 place-items-center rounded-xl bg-white/15 text-sm font-semibold text-white backdrop-blur-sm">
+                  {initials}
+                </div>
+                <div>
+                  <p className="text-sm text-[#D6D9E0]">Employee</p>
+                  <h1 className="text-2xl font-semibold text-white md:text-3xl">My requests</h1>
                 </div>
               </div>
             </div>
-          </SidebarInset>
 
-          {/**List requests */}
-          <section className="flex flex-1 w-auto h-auto bg-[#F4F6F9] px-[18dvw] py-[2.5%]">
-            <Card className="flex flex-col flex-4 w-fit h-full px-[5dvw]">
-              <div className="flex flex-0 flex-row w-full h-fit gap-5 content-center pb-3 border-b">
-                <Link
-                  to={"/"}
-                  onClick={() => {
-                    onBack();
-                    return false;
-                  }}
-                  className="inline-block mr-4 h-auto w-auto content-center"
-                >
-                  <ArrowLeft className="h-auto" />
-                </Link>
+            <div className="flex flex-wrap items-center gap-5 text-sm text-[#E4E8F0]">
+              <div className="flex items-center gap-2">
+                <CalendarDays className="h-4 w-4" />
+                {formattedDate}
+              </div>
+              <div className="flex items-center gap-2">
+                <Clock3 className="h-4 w-4" />
+                {formattedTime}
+              </div>
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="h-4 w-4" />
+                Secure session active
+              </div>
+            </div>
+          </div>
+        </div>
 
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant={"outline"}>
-                      <ArrowDown01 />
-                      {position == null ? "" : position}
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-32">
-                    <DropdownMenuGroup>
-                      <DropdownMenuLabel>Choose an option</DropdownMenuLabel>
-                      <DropdownMenuRadioGroup
-                        value={position}
-                        onValueChange={setPosition}
-                      >
-                        <DropdownMenuRadioItem value="By weeks">
-                          By weeks
-                        </DropdownMenuRadioItem>
-                        <DropdownMenuRadioItem value="By months">
-                          By months
-                        </DropdownMenuRadioItem>
-                        <DropdownMenuRadioItem value="By years">
-                          By years
-                        </DropdownMenuRadioItem>
-                      </DropdownMenuRadioGroup>
-                    </DropdownMenuGroup>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+        <section className="mx-auto w-full max-w-7xl px-6 py-8 md:px-10">
+          <Card className="flex flex-col gap-4 p-4 md:p-6">
+            <div className="flex flex-wrap items-center gap-2 border-b pb-4">
+              <Link
+                to="/"
+                onClick={() => {
+                  onBack()
+                  return false
+                }}
+                className="inline-block"
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </Link>
 
-                <Field className="flex flex-0 w-fit self-start">
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        id="date-picker-range"
-                        className="justify-start px-2.5 font-normal"
-                      >
-                        <CalendarIcon className="text-stone-700 font-normal" />
-                        {date?.from ? (
-                          date.to ? (
-                            <>
-                              {format(date.from, "LLL dd, y")} -{" "}
-                              {format(date.to, "LLL dd, y")}
-                            </>
-                          ) : (
-                            format(date.from, "LLL dd, y")
-                          )
-                        ) : (
-                          <span>Pick a date</span>
-                        )}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="range"
-                        defaultMonth={date?.from}
-                        selected={date}
-                        onSelect={setDate}
-                        numberOfMonths={2}
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </Field>
-
-                <div className="flex flex-auto w-full h-fit" />
-
-                <Button asChild variant={"outline"}>
-                  <Link to={user.role == "employee" ? "/employee" : "/manager"}>
-                    <Home />
-                    <p className="text-stone-700">Return to dashboard</p>
+              <div className="ml-auto flex flex-wrap gap-2">
+                <Button asChild variant="outline">
+                  <Link to={user.role === 'employee' ? '/employee' : '/manager'}>
+                    <Home className="h-4 w-4" />
+                    Return to dashboard
                   </Link>
                 </Button>
-                <Button asChild variant={"outline"}>
+                <Button asChild variant="outline">
                   <Link to="/request-leaves/request-leave">
-                    <NotebookPen />
-                    <p className="text-stone-700">Request new leave</p>
+                    <NotebookPen className="h-4 w-4" />
+                    Request new leave
                   </Link>
                 </Button>
               </div>
+            </div>
 
-              <div className="flex flex-1 flex-col gap-5">
-                <p>This week</p>
+            <div className="flex flex-wrap gap-2">
+              {(['ALL', 'PENDING', 'APPROVED', 'REJECTED', 'CANCELLED'] as const).map((tab) => {
+                const active = activeTab === tab
+                return (
+                  <button
+                    key={tab}
+                    type="button"
+                    onClick={() => setActiveTab(tab)}
+                    className={`rounded-md px-3 py-1.5 text-sm font-medium transition ${
+                      active
+                        ? 'bg-[#1A5FD7] text-white'
+                        : 'border border-[#E6E8EC] bg-white text-[#2D3142] hover:bg-[#EEF4FF]'
+                    }`}
+                  >
+                    {tab.charAt(0) + tab.slice(1).toLowerCase()} ({statusCounts[tab]})
+                  </button>
+                )
+              })}
+            </div>
 
-                <RequestLeaveItem
-                  title="Vacation Leave"
-                  time="Submitted 2 days ago"
-                  status="Pending"
-                />
+            <div className="space-y-3">
+              {loadingLeaves ? (
+                <div className="rounded-xl border border-[#E6E8EC] p-4 text-sm text-[#6B7280]">
+                  Loading your requests...
+                </div>
+              ) : null}
 
-                <p>This month</p>
-                <RequestLeaveItem
-                  title="Sick Leave"
-                  time="Approved last week"
-                  status="Approved"
-                />
-                <RequestLeaveItem
-                  title="Emergency Leave"
-                  time="Reviewed 3 weeks ago"
-                  status="Rejected"
-                />
-              </div>
-            </Card>
-          </section>
-        </SidebarProvider>
-      </main>
-    );
+              {!loadingLeaves && leavesError ? (
+                <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+                  {leavesError}
+                </div>
+              ) : null}
+
+              {!loadingLeaves && !leavesError && filteredLeaves.length === 0 ? (
+                <div className="rounded-xl border border-[#E6E8EC] p-4 text-sm text-[#6B7280]">
+                  No requests found for this tab.
+                </div>
+              ) : null}
+
+              {!loadingLeaves && !leavesError
+                ? filteredLeaves.map((leave) => (
+                    <RequestLeaveItem
+                      key={leave.leaveId}
+                      leave={leave}
+                      onWithdraw={handleWithdraw}
+                      withdrawing={withdrawingLeaveId === leave.leaveId}
+                    />
+                  ))
+                : null}
+            </div>
+          </Card>
+        </section>
+      </SidebarInset>
+    </SidebarProvider>
+  )
 }

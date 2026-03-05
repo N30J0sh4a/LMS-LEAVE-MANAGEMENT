@@ -21,9 +21,24 @@ export function AppSidebar({ userName, userEmail, role, currentPath, onLogout }:
   const navItems =
     role === "employee"
       ? [
-          { label: "Dashboard", to: "/employee", icon: LayoutDashboard },
-          { label: "My Requests", to: "/leaves-list/requests-list", icon: CalendarClock },
-          { label: "Request for a leave", to: "/request-leaves/request-leave", icon: Notebook}
+          {
+            label: "Dashboard",
+            to: "/employee",
+            icon: LayoutDashboard,
+            active: currentPath === "/employee",
+          },
+          {
+            label: "My Requests",
+            to: "/leaves-list/requests-list",
+            icon: CalendarClock,
+            active: currentPath.startsWith("/leaves-list/requests-list"),
+          },
+          {
+            label: "Request for a leave",
+            to: "/request-leaves/request-leave",
+            icon: Notebook,
+            active: currentPath.startsWith("/request-leaves/request-leave"),
+          }
         ]
       : [
           { label: "Dashboard", to: "/manager", icon: LayoutDashboard, active: currentPath === "/manager" },

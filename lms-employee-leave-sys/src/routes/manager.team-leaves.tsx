@@ -55,6 +55,8 @@ function RouteComponent() {
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false)
   const [targetLeaveId, setTargetLeaveId] = useState<string | null>(null)
   const [rejectionReason, setRejectionReason] = useState('')
+  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false)
+  const [selectedLeave, setSelectedLeave] = useState<LeaveRequest | null>(null)
 
   useEffect(() => {
     document.title = 'Manager | Team Leaves'
@@ -163,6 +165,16 @@ function RouteComponent() {
     setTargetLeaveId(leaveId)
     setRejectionReason('')
     setRejectDialogOpen(true)
+  }
+
+  const openDetailsDialog = (leave: LeaveRequest) => {
+    setSelectedLeave(leave)
+    setDetailsDialogOpen(true)
+  }
+
+  const closeDetailsDialog = () => {
+    setDetailsDialogOpen(false)
+    setSelectedLeave(null)
   }
 
   const handleRejectSubmit = async () => {
@@ -314,37 +326,48 @@ function RouteComponent() {
                           <p className="text-xs text-red-600">Reason: {item.rejectionReason}</p>
                         ) : null}
 
-                        {isPending ? (
-                          <div className="flex flex-wrap gap-2">
-                            <button
-                              type="button"
-                              className="inline-flex items-center gap-1 rounded-md border border-[#D1FAE5] bg-[#ECFDF5] px-3 py-1.5 text-xs font-medium text-[#047857] hover:bg-[#D1FAE5]"
-                              onClick={() => handleApprove(item.leaveId)}
-                              disabled={Boolean(actionLoading)}
-                            >
-                              {isApproving ? (
-                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                              ) : (
-                                <CheckCircle2 className="h-3.5 w-3.5" />
-                              )}
-                              Approve
-                            </button>
+                        <div className="flex flex-wrap gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className="h-8 px-3 text-xs"
+                            onClick={() => openDetailsDialog(item)}
+                          >
+                            View details
+                          </Button>
 
-                            <button
-                              type="button"
-                              className="inline-flex items-center gap-1 rounded-md border border-[#FEE2E2] bg-[#FEF2F2] px-3 py-1.5 text-xs font-medium text-[#B91C1C] hover:bg-[#FEE2E2]"
-                              onClick={() => openRejectDialog(item.leaveId)}
-                              disabled={Boolean(actionLoading)}
-                            >
-                              {isRejecting ? (
-                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                              ) : (
-                                <XCircle className="h-3.5 w-3.5" />
-                              )}
-                              Reject
-                            </button>
-                          </div>
-                        ) : null}
+                          {isPending ? (
+                            <>
+                              <button
+                                type="button"
+                                className="inline-flex items-center gap-1 rounded-md border border-[#D1FAE5] bg-[#ECFDF5] px-3 py-1.5 text-xs font-medium text-[#047857] hover:bg-[#D1FAE5]"
+                                onClick={() => handleApprove(item.leaveId)}
+                                disabled={Boolean(actionLoading)}
+                              >
+                                {isApproving ? (
+                                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                ) : (
+                                  <CheckCircle2 className="h-3.5 w-3.5" />
+                                )}
+                                Approve
+                              </button>
+
+                              <button
+                                type="button"
+                                className="inline-flex items-center gap-1 rounded-md border border-[#FEE2E2] bg-[#FEF2F2] px-3 py-1.5 text-xs font-medium text-[#B91C1C] hover:bg-[#FEE2E2]"
+                                onClick={() => openRejectDialog(item.leaveId)}
+                                disabled={Boolean(actionLoading)}
+                              >
+                                {isRejecting ? (
+                                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                ) : (
+                                  <XCircle className="h-3.5 w-3.5" />
+                                )}
+                                Reject
+                              </button>
+                            </>
+                          ) : null}
+                        </div>
                       </div>
                     )
                   })
@@ -367,6 +390,78 @@ function RouteComponent() {
             </CardContent>
           </Card>
         </section>
+
+        <Dialog
+          open={detailsDialogOpen}
+          onOpenChange={(open) => {
+            if (!open) {
+              closeDetailsDialog()
+              return
+            }
+            setDetailsDialogOpen(open)
+          }}
+        >
+          <DialogContent className="sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Leave Request Details</DialogTitle>
+              <DialogDescription>Leave ID: {selectedLeave?.leaveId ?? '-'}</DialogDescription>
+            </DialogHeader>
+
+            <div className="grid gap-2 text-sm text-[#374151]">
+              <p>
+                <span className="font-medium">Employee:</span>{' '}
+                {selectedLeave?.employeeName || selectedLeave?.employeeId || 'N/A'}
+              </p>
+              <p>
+                <span className="font-medium">Leave type:</span> {selectedLeave?.leaveType || 'N/A'}
+              </p>
+              <p>
+                <span className="font-medium">Date range:</span> {selectedLeave?.startDate || 'N/A'} to{' '}
+                {selectedLeave?.endDate || 'N/A'}
+              </p>
+              <p>
+                <span className="font-medium">Department:</span> {selectedLeave?.department || 'N/A'}
+              </p>
+              <p>
+                <span className="font-medium">Position:</span> {selectedLeave?.position || 'N/A'}
+              </p>
+              <p>
+                <span className="font-medium">Reason:</span> {selectedLeave?.reason || 'N/A'}
+              </p>
+              <p>
+                <span className="font-medium">Status:</span> {selectedLeave?.status || 'N/A'}
+              </p>
+              <p>
+                <span className="font-medium">Submitted at:</span>{' '}
+                {selectedLeave?.createdAt
+                  ? new Date(selectedLeave.createdAt).toLocaleString('en-US')
+                  : 'N/A'}
+              </p>
+              {selectedLeave?.reviewedBy ? (
+                <p>
+                  <span className="font-medium">Reviewed by:</span> {selectedLeave.reviewedBy}
+                </p>
+              ) : null}
+              {selectedLeave?.reviewedAt ? (
+                <p>
+                  <span className="font-medium">Reviewed at:</span>{' '}
+                  {new Date(selectedLeave.reviewedAt).toLocaleString('en-US')}
+                </p>
+              ) : null}
+              {selectedLeave?.rejectionReason ? (
+                <p>
+                  <span className="font-medium">Rejection reason:</span> {selectedLeave.rejectionReason}
+                </p>
+              ) : null}
+            </div>
+
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={closeDetailsDialog}>
+                Close
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
           <DialogContent className="sm:max-w-md">
@@ -421,4 +516,3 @@ function RouteComponent() {
     </SidebarProvider>
   )
 }
-
