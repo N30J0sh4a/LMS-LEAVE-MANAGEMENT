@@ -58,7 +58,6 @@ function RouteComponent() {
     const [loadingProfile, setLoadingProfile] = useState(true)
     const [currentTime, setCurrentTime] = useState(() => new Date());
     const navigate = useNavigate();
-    const [leaveType, setLeaveType] = useState('')
     const [submitting, setSubmitting] = useState(false)
     const [submitError, setSubmitError] = useState<string | null>(null)
     const [submitSuccess, setSubmitSuccess] = useState(false)
