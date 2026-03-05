@@ -1,4 +1,4 @@
-const { QueryCommand } = require('@aws-sdk/lib-dynamodb');
+const { BatchGetCommand, QueryCommand } = require('@aws-sdk/lib-dynamodb');
 const db = require('../../shared/dynamodb');
 const {success, error} = require('../../shared/response');
 const {LEAVE_STATUS} = require('../../shared/constants');
@@ -39,9 +39,49 @@ exports.handler = async (event) => {
         }
 
         const result = await db.send(new QueryCommand(params));
+        const items = result.Items || [];
+
+        // Enrich leave rows with employee profile display data when available.
+        const uniqueEmployeeIds = [...new Set(items.map((item) => item.employeeId).filter(Boolean))];
+        let profilesByEmployeeId = {};
+
+        if (uniqueEmployeeIds.length > 0) {
+            const profileKeys = uniqueEmployeeIds.map((id) => ({
+                PK: `user#${id}`,
+                SK: 'profile',
+            }));
+
+            const profileResult = await db.send(new BatchGetCommand({
+                RequestItems: {
+                    [TABLE]: {
+                        Keys: profileKeys,
+                        ProjectionExpression: 'PK, #fullName, email',
+                        ExpressionAttributeNames: {
+                            '#fullName': 'fullName',
+                        },
+                    },
+                },
+            }));
+
+            const profileItems = profileResult.Responses?.[TABLE] || [];
+            profilesByEmployeeId = Object.fromEntries(
+                profileItems.map((profile) => [
+                    String(profile.PK).replace('user#', ''),
+                    {
+                        employeeName: profile.fullName || null,
+                        employeeEmail: profile.email || null,
+                    },
+                ])
+            );
+        }
+
+        const enrichedItems = items.map((item) => ({
+            ...item,
+            ...(profilesByEmployeeId[item.employeeId] || {}),
+        }));
 
         const  responseData = {
-            items: result.Items || [],
+            items: enrichedItems,
             count: result.Count || 0,
         };
 

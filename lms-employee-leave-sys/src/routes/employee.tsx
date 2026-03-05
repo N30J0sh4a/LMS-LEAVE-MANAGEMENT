@@ -134,6 +134,7 @@ function RouteComponent() {
         userName={user.fullName}
         userEmail={user.email}
         role="employee"
+        currentPath="/employee"
         onLogout={handleLogout}
       />
       <SidebarInset className="bg-[#F4F6F9] text-[#2D3142]">
