@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { ArrowLeft, Eye, EyeOff, Mail, User } from 'lucide-react'
 import { createUserWithEmailAndPassword } from 'firebase/auth'
+import { toast } from 'sonner'
 
 import { Card } from '../components/ui/card'
 import { Button } from '../components/ui/button'
@@ -40,7 +41,6 @@ function RouteComponent() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [role, setRole] = useState<UserRole>('employee')
   const [agreed, setAgreed] = useState(false)
-  const [errorMessage, setErrorMessage] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
@@ -48,25 +48,23 @@ function RouteComponent() {
   }, [])
 
   const handleRegister = async () => {
-    setErrorMessage('')
-
     if (!fullName || !email || !password || !confirmPassword) {
-      setErrorMessage('Please complete all required fields.')
+      toast.error('Please complete all required fields.')
       return
     }
 
     if (!agreed) {
-      setErrorMessage('You must agree to the account policy and usage guidelines.')
+      toast.error('You must agree to the account policy and usage guidelines.')
       return
     }
 
     if (password !== confirmPassword) {
-      setErrorMessage('Passwords do not match.')
+      toast.error('Passwords do not match.')
       return
     }
 
     if (password.length < 6) {
-      setErrorMessage('Password must be at least 6 characters.')
+      toast.error('Password must be at least 6 characters.')
       return
     }
 
@@ -76,10 +74,11 @@ function RouteComponent() {
       const idToken = await credential.user.getIdToken()
       const userProfile = await registerUserProfile(idToken, { fullName, role })
       saveUserProfile(userProfile)
+      toast.success('Account created successfully.')
       await navigate({ to: userProfile.role === 'employee' ? '/employee' : '/manager' })
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unable to create account.'
-      setErrorMessage(message)
+      toast.error(message)
     } finally {
       setIsLoading(false)
     }
@@ -237,10 +236,6 @@ function RouteComponent() {
                 I agree to the account policy and secure usage guidelines.
               </Label>
             </div>
-
-            {errorMessage ? (
-              <p className="text-sm text-red-600">{errorMessage}</p>
-            ) : null}
 
             <Button
               className="w-full bg-[#1A5FD7] hover:bg-[#174bb0] text-white font-medium py-3 rounded-lg transition"

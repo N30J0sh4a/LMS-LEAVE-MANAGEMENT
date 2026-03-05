@@ -13,10 +13,11 @@ type AppSidebarProps = {
   userName: string
   userEmail: string
   role: "employee" | "manager"
+  currentPath: string
   onLogout: () => Promise<void> | void
 }
 
-export function AppSidebar({ userName, userEmail, role, onLogout }: AppSidebarProps) {
+export function AppSidebar({ userName, userEmail, role, currentPath, onLogout }: AppSidebarProps) {
   const navItems =
     role === "employee"
       ? [
@@ -25,8 +26,13 @@ export function AppSidebar({ userName, userEmail, role, onLogout }: AppSidebarPr
           { label: "Request for a leave", to: "/request-leaves/request-leave", icon: Notebook}
         ]
       : [
-          { label: "Dashboard", to: "/manager", icon: LayoutDashboard },
-          { label: "Team Leaves", to: "/manager", icon: BriefcaseBusiness },
+          { label: "Dashboard", to: "/manager", icon: LayoutDashboard, active: currentPath === "/manager" },
+          {
+            label: "Team Leaves",
+            to: "/manager/team-leaves",
+            icon: BriefcaseBusiness,
+            active: currentPath.startsWith("/manager/team-leaves"),
+          },
         ]
 
   return (
@@ -50,7 +56,11 @@ export function AppSidebar({ userName, userEmail, role, onLogout }: AppSidebarPr
                 key={item.label}
                 asChild
                 variant="ghost"
-                className="w-full justify-start text-[#2D3142] hover:bg-[#EEF4FF] hover:text-[#1A5FD7]"
+                className={`w-full justify-start ${
+                  item.active
+                    ? "bg-[#EEF4FF] text-[#1A5FD7]"
+                    : "text-[#2D3142] hover:bg-[#EEF4FF] hover:text-[#1A5FD7]"
+                }`}
               >
                 <Link to={item.to}>
                   <item.icon className="h-4 w-4" />

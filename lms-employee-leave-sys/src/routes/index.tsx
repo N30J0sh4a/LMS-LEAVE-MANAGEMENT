@@ -12,6 +12,7 @@ import { Checkbox } from '../components/ui/checkbox'
 import { Label } from '../components/ui/label'
 import { Button } from '../components/ui/button'
 import { signInWithEmailAndPassword, signInWithPopup } from 'firebase/auth'
+import { toast } from 'sonner'
 
 import { auth, googleProvider } from '../lib/firebase'
 import { loginUserSession, type UserRole } from '../lib/auth-api'
@@ -28,7 +29,6 @@ function RouteComponent() {
   const [role, setRole] = useState<UserRole>('employee')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [errorMessage, setErrorMessage] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
@@ -40,10 +40,8 @@ function RouteComponent() {
   }
 
   const handleEmailLogin = async () => {
-    setErrorMessage('')
-
     if (!email || !password) {
-      setErrorMessage('Email and password are required.')
+      toast.error('Email and password are required.')
       return
     }
 
@@ -53,18 +51,17 @@ function RouteComponent() {
       const idToken = await credential.user.getIdToken()
       const userProfile = await loginUserSession(idToken, { role, autoCreate: false })
       saveUserProfile(userProfile)
+      toast.success('Signed in successfully.')
       await navigateByRole(userProfile.role)
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unable to sign in.'
-      setErrorMessage(message)
+      toast.error(message)
     } finally {
       setIsLoading(false)
     }
   }
 
   const handleGoogleLogin = async () => {
-    setErrorMessage('')
-
     try {
       setIsLoading(true)
       const credential = await signInWithPopup(auth, googleProvider)
@@ -75,11 +72,12 @@ function RouteComponent() {
         fullName: credential.user.displayName || undefined,
       })
       saveUserProfile(userProfile)
+      toast.success('Google sign in successful.')
 
       await navigateByRole(userProfile.role)
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unable to sign in with Google.'
-      setErrorMessage(message)
+      toast.error(message)
     } finally {
       setIsLoading(false)
     }
@@ -204,10 +202,6 @@ function RouteComponent() {
                 Forgot password?
               </Button>
             </div>
-
-            {errorMessage ? (
-              <p className="text-sm text-red-600">{errorMessage}</p>
-            ) : null}
 
             <Button
               className="w-full bg-[#1A5FD7] hover:bg-[#174bb0] hover:cursor-pointer text-white font-medium py-3 rounded-lg transition"

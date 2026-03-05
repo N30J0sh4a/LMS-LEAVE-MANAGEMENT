@@ -14,6 +14,7 @@ import { Route as EmployeeRouteImport } from './routes/employee'
 import { Route as CreateAccountRouteImport } from './routes/create-account'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as RequestLeavesRequestLeaveRouteImport } from './routes/request-leaves/request-leave'
+import { Route as ManagerTeamLeavesRouteImport } from './routes/manager.team-leaves'
 import { Route as LeavesListRequestsListRouteImport } from './routes/leaves-list/requests-list'
 
 const ManagerRoute = ManagerRouteImport.update({
@@ -42,6 +43,11 @@ const RequestLeavesRequestLeaveRoute =
     path: '/request-leaves/request-leave',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ManagerTeamLeavesRoute = ManagerTeamLeavesRouteImport.update({
+  id: '/team-leaves',
+  path: '/team-leaves',
+  getParentRoute: () => ManagerRoute,
+} as any)
 const LeavesListRequestsListRoute = LeavesListRequestsListRouteImport.update({
   id: '/leaves-list/requests-list',
   path: '/leaves-list/requests-list',
@@ -52,16 +58,18 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/create-account': typeof CreateAccountRoute
   '/employee': typeof EmployeeRoute
-  '/manager': typeof ManagerRoute
+  '/manager': typeof ManagerRouteWithChildren
   '/leaves-list/requests-list': typeof LeavesListRequestsListRoute
+  '/manager/team-leaves': typeof ManagerTeamLeavesRoute
   '/request-leaves/request-leave': typeof RequestLeavesRequestLeaveRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/create-account': typeof CreateAccountRoute
   '/employee': typeof EmployeeRoute
-  '/manager': typeof ManagerRoute
+  '/manager': typeof ManagerRouteWithChildren
   '/leaves-list/requests-list': typeof LeavesListRequestsListRoute
+  '/manager/team-leaves': typeof ManagerTeamLeavesRoute
   '/request-leaves/request-leave': typeof RequestLeavesRequestLeaveRoute
 }
 export interface FileRoutesById {
@@ -69,8 +77,9 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/create-account': typeof CreateAccountRoute
   '/employee': typeof EmployeeRoute
-  '/manager': typeof ManagerRoute
+  '/manager': typeof ManagerRouteWithChildren
   '/leaves-list/requests-list': typeof LeavesListRequestsListRoute
+  '/manager/team-leaves': typeof ManagerTeamLeavesRoute
   '/request-leaves/request-leave': typeof RequestLeavesRequestLeaveRoute
 }
 export interface FileRouteTypes {
@@ -81,6 +90,7 @@ export interface FileRouteTypes {
     | '/employee'
     | '/manager'
     | '/leaves-list/requests-list'
+    | '/manager/team-leaves'
     | '/request-leaves/request-leave'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -89,6 +99,7 @@ export interface FileRouteTypes {
     | '/employee'
     | '/manager'
     | '/leaves-list/requests-list'
+    | '/manager/team-leaves'
     | '/request-leaves/request-leave'
   id:
     | '__root__'
@@ -97,6 +108,7 @@ export interface FileRouteTypes {
     | '/employee'
     | '/manager'
     | '/leaves-list/requests-list'
+    | '/manager/team-leaves'
     | '/request-leaves/request-leave'
   fileRoutesById: FileRoutesById
 }
@@ -104,7 +116,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CreateAccountRoute: typeof CreateAccountRoute
   EmployeeRoute: typeof EmployeeRoute
-  ManagerRoute: typeof ManagerRoute
+  ManagerRoute: typeof ManagerRouteWithChildren
   LeavesListRequestsListRoute: typeof LeavesListRequestsListRoute
   RequestLeavesRequestLeaveRoute: typeof RequestLeavesRequestLeaveRoute
 }
@@ -146,6 +158,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RequestLeavesRequestLeaveRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/manager/team-leaves': {
+      id: '/manager/team-leaves'
+      path: '/team-leaves'
+      fullPath: '/manager/team-leaves'
+      preLoaderRoute: typeof ManagerTeamLeavesRouteImport
+      parentRoute: typeof ManagerRoute
+    }
     '/leaves-list/requests-list': {
       id: '/leaves-list/requests-list'
       path: '/leaves-list/requests-list'
@@ -156,11 +175,22 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface ManagerRouteChildren {
+  ManagerTeamLeavesRoute: typeof ManagerTeamLeavesRoute
+}
+
+const ManagerRouteChildren: ManagerRouteChildren = {
+  ManagerTeamLeavesRoute: ManagerTeamLeavesRoute,
+}
+
+const ManagerRouteWithChildren =
+  ManagerRoute._addFileChildren(ManagerRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CreateAccountRoute: CreateAccountRoute,
   EmployeeRoute: EmployeeRoute,
-  ManagerRoute: ManagerRoute,
+  ManagerRoute: ManagerRouteWithChildren,
   LeavesListRequestsListRoute: LeavesListRequestsListRoute,
   RequestLeavesRequestLeaveRoute: RequestLeavesRequestLeaveRoute,
 }
