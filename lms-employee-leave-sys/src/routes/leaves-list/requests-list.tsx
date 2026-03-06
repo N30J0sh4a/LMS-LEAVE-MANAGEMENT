@@ -71,39 +71,12 @@ function RouteComponent() {
         return
       }
 
-<<<<<<< HEAD
-    {/**CONTENT */}
-    return (
-      <main className="w-full h-screen flex flex-col">
-        <SidebarProvider className="flex flex-1 flex-col w-full h-fit bg-radial">
-          <SidebarInset className="flex flex-0 w-full h-auto">
-            <div className="w-full relative overflow-hidden border-b border-[#E6E8EC] bg-linear-to-br from-[#2D3142] via-[#1A5FD7] to-[#2D3142]">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,#F26327_0%,transparent_40%)] opacity-25" />
-              <div className="relative mx-auto flex w-full max-w-7xl flex-col gap-5 px-6 py-8 md:px-10">
-                <div className="flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-4">
-                    <SidebarTrigger className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white">
-                      <PanelLeft className="h-4 w-4" />
-                    </SidebarTrigger>
-                    <div className="grid size-12 place-items-center rounded-xl bg-white/15 text-sm font-semibold text-white backdrop-blur-sm">
-                      {initials}
-                    </div>
-                    <div>
-                      <p className="text-sm text-[#D6D9E0]">Employee</p>
-                      <h1 className="text-2xl font-semibold text-white md:text-3xl">
-                        Your requests
-                      </h1>
-                    </div>
-                  </div>
-                </div>
-=======
       try {
         const idToken = await firebaseUser.getIdToken()
         const profile = await loginUserSession(idToken, {
           role: 'employee',
           autoCreate: false,
         })
->>>>>>> dd73de1f9ad201d110f98f76a4ac8b1aefccdba8
 
         saveUserProfile(profile)
         setUser(profile)
@@ -207,7 +180,7 @@ function RouteComponent() {
       toast.warning('Only pending requests can be withdrawn.')
       return
     }
-
+    
     try {
       setWithdrawingLeaveId(leave.leaveId)
       await cancelLeave(leave.leaveId, user.uid)

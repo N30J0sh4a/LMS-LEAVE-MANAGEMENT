@@ -13,6 +13,7 @@ import { Route as ManagerRouteImport } from './routes/manager'
 import { Route as EmployeeRouteImport } from './routes/employee'
 import { Route as CreateAccountRouteImport } from './routes/create-account'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as UserProfileIndexRouteImport } from './routes/user-profile/index'
 import { Route as RequestLeavesRequestLeaveRouteImport } from './routes/request-leaves/request-leave'
 import { Route as ManagerTeamLeavesRouteImport } from './routes/manager.team-leaves'
 import { Route as LeavesListRequestsListRouteImport } from './routes/leaves-list/requests-list'
@@ -35,6 +36,11 @@ const CreateAccountRoute = CreateAccountRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UserProfileIndexRoute = UserProfileIndexRouteImport.update({
+  id: '/user-profile/',
+  path: '/user-profile/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RequestLeavesRequestLeaveRoute =
@@ -62,6 +68,7 @@ export interface FileRoutesByFullPath {
   '/leaves-list/requests-list': typeof LeavesListRequestsListRoute
   '/manager/team-leaves': typeof ManagerTeamLeavesRoute
   '/request-leaves/request-leave': typeof RequestLeavesRequestLeaveRoute
+  '/user-profile/': typeof UserProfileIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -71,6 +78,7 @@ export interface FileRoutesByTo {
   '/leaves-list/requests-list': typeof LeavesListRequestsListRoute
   '/manager/team-leaves': typeof ManagerTeamLeavesRoute
   '/request-leaves/request-leave': typeof RequestLeavesRequestLeaveRoute
+  '/user-profile': typeof UserProfileIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -81,6 +89,7 @@ export interface FileRoutesById {
   '/leaves-list/requests-list': typeof LeavesListRequestsListRoute
   '/manager/team-leaves': typeof ManagerTeamLeavesRoute
   '/request-leaves/request-leave': typeof RequestLeavesRequestLeaveRoute
+  '/user-profile/': typeof UserProfileIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -92,6 +101,7 @@ export interface FileRouteTypes {
     | '/leaves-list/requests-list'
     | '/manager/team-leaves'
     | '/request-leaves/request-leave'
+    | '/user-profile/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -101,6 +111,7 @@ export interface FileRouteTypes {
     | '/leaves-list/requests-list'
     | '/manager/team-leaves'
     | '/request-leaves/request-leave'
+    | '/user-profile'
   id:
     | '__root__'
     | '/'
@@ -110,6 +121,7 @@ export interface FileRouteTypes {
     | '/leaves-list/requests-list'
     | '/manager/team-leaves'
     | '/request-leaves/request-leave'
+    | '/user-profile/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -119,6 +131,7 @@ export interface RootRouteChildren {
   ManagerRoute: typeof ManagerRouteWithChildren
   LeavesListRequestsListRoute: typeof LeavesListRequestsListRoute
   RequestLeavesRequestLeaveRoute: typeof RequestLeavesRequestLeaveRoute
+  UserProfileIndexRoute: typeof UserProfileIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -149,6 +162,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/user-profile/': {
+      id: '/user-profile/'
+      path: '/user-profile'
+      fullPath: '/user-profile/'
+      preLoaderRoute: typeof UserProfileIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/request-leaves/request-leave': {
@@ -193,6 +213,7 @@ const rootRouteChildren: RootRouteChildren = {
   ManagerRoute: ManagerRouteWithChildren,
   LeavesListRequestsListRoute: LeavesListRequestsListRoute,
   RequestLeavesRequestLeaveRoute: RequestLeavesRequestLeaveRoute,
+  UserProfileIndexRoute: UserProfileIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

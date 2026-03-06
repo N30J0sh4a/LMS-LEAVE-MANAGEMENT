@@ -284,24 +284,11 @@ function RouteComponent() {
                   </div>
                 ) : null}
 
-<<<<<<< HEAD
-                <RequestLeaveItem
-                  title="Sick Leave"
-                  time="Approved last week"
-                  status="Approved"
-                />
-                <RequestLeaveItem
-                  title="Emergency Leave"
-                  time="Reviewed 3 weeks ago"
-                  status="Rejected"
-                />
-=======
                 {!loadingLeaves && leavesError ? (
                   <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
                     {leavesError}
                   </div>
                 ) : null}
->>>>>>> dd73de1f9ad201d110f98f76a4ac8b1aefccdba8
 
                 {!loadingLeaves && !leavesError && recentLeaves.length === 0 ? (
                   <div className="rounded-xl border border-[#E6E8EC] p-4 text-sm text-[#6B7280]">

@@ -38,7 +38,7 @@ export function AppSidebar({ userName, userEmail, role, currentPath, onLogout }:
             to: "/request-leaves/request-leave",
             icon: Notebook,
             active: currentPath.startsWith("/request-leaves/request-leave"),
-          }
+          },
         ]
       : [
           { label: "Dashboard", to: "/manager", icon: LayoutDashboard, active: currentPath === "/manager" },
@@ -94,6 +94,13 @@ export function AppSidebar({ userName, userEmail, role, currentPath, onLogout }:
               <span className="font-medium">{userName}</span>
             </div>
             <p className="text-xs">{userEmail}</p>
+            <Button
+              asChild
+              variant='outline'
+              className="w-full mt-2"
+            >
+              <Link to='/user-profile'>View your profile</Link>
+            </Button>
           </div>
         </SidebarGroup>
       </SidebarContent>
