@@ -153,7 +153,7 @@ function RouteComponent() {
                   <div>
                     <p className="text-sm text-[#D6D9E0]">Employee</p>
                     <h1 className="text-2xl font-semibold text-white md:text-3xl">
-                      Your profile
+                      User information
                     </h1>
                   </div>
                 </div>
