@@ -15,7 +15,7 @@ import { auth } from "../../lib/firebase";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Card, CardContent } from "@/components/ui/card";
-import { Building, CalendarDays, Clock3, LogIn, MailIcon, PanelLeft, Plus, ShieldCheck, User2, User2Icon, UserIcon, Users2Icon, UsersIcon, Workflow, WorkflowIcon } from "lucide-react";
+import { Building, CalendarDays, Clock3, LogIn, MailIcon, PanelLeft, Plus, ShieldCheck, User2, User2Icon, Users2Icon, Workflow, WorkflowIcon } from "lucide-react";
 
 export const Route = createFileRoute("/user-profile/")({
   beforeLoad: () => {
@@ -209,11 +209,11 @@ function RouteComponent() {
 
                   <div className="flex flex-1 flex-col border-t">
                     <div className="flex flex-1 flex-col my-2">
-                      <p className="font-normal text-[0.7rem]">
+                      <p className="font-normal text-[0.7rem] text-stone-600">
                         Account creation date
                       </p>
                       <div className=" flex flex-1 flex-row gap-3 justify-center text-[0.8]">
-                        <Plus className="h-auto w-4 text-[#1A5FD7]" />
+                        <Plus className="h-auto w-4 text-black" />
                         <span className="font-light">
                           {new Date(user.createdAt).toLocaleString("en-US", {
                             month: "short",
@@ -226,12 +226,12 @@ function RouteComponent() {
                       </div>
                     </div>
                     <div className="flex flex-1 flex-col my-2">
-                      <p className="font-normal text-[0.7rem]">
+                      <p className="font-normal text-[0.7rem] text-stone-600">
                         Account last login
                       </p>
 
                       <div className=" flex flex-1 flex-row gap-3 justify-center text-[0.8]">
-                        <LogIn className="h-auto w-4 text-[#1A5FD7]" />
+                        <LogIn className="h-auto w-4 text-black" />
                         <span className="font-light">
                           {new Date(user.lastLoginAt).toLocaleString("en-US", {
                             month: "short",
@@ -302,7 +302,6 @@ function RouteComponent() {
                     </div>
                   </div>
                 </div>
-
               </div>
             </CardContent>
           </Card>
