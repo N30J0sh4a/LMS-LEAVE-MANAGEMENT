@@ -4,8 +4,8 @@ import { onAuthStateChanged, signOut } from 'firebase/auth'
 import {
   CalendarDays,
   Clock3,
+  Loader2,
   PanelLeft,
-  Plane,
   ShieldCheck,
   Sparkles,
   UserRound,
@@ -13,12 +13,13 @@ import {
 
 import { auth } from '../lib/firebase'
 import { loginUserSession, type UserProfile } from '../lib/auth-api'
+import { listEmployeeLeaves, type LeaveRequest } from '../lib/leaves-api'
 import { clearUserProfile, getUserProfile, saveUserProfile } from '../lib/session'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card'
 import { AppSidebar } from '../components/app-sidebar'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '../components/ui/sidebar'
 import { Button } from '@/components/ui/button'
-import RequestLeaveItem from '@/components/request-leave-item'
+import { toast } from 'sonner'
 
 export const Route = createFileRoute('/employee')({
   beforeLoad: () => {
@@ -39,8 +40,10 @@ function RouteComponent() {
   const [user, setUser] = useState<UserProfile | null>(() => getUserProfile())
   const [loadingProfile, setLoadingProfile] = useState(true)
   const [currentTime, setCurrentTime] = useState(() => new Date())
+  const [leaves, setLeaves] = useState<LeaveRequest[]>([])
+  const [loadingLeaves, setLoadingLeaves] = useState(true)
+  const [leavesError, setLeavesError] = useState('')
 
-  {/**Name of page*/}    
   useEffect(() => {
     document.title = 'Employee | Dashboard'
   }, [])
@@ -84,6 +87,29 @@ function RouteComponent() {
     return () => unsubscribe()
   }, [navigate])
 
+  useEffect(() => {
+    if (!user) {
+      return
+    }
+
+    const fetchEmployeeLeaves = async () => {
+      try {
+        setLoadingLeaves(true)
+        setLeavesError('')
+        const items = await listEmployeeLeaves(user.uid)
+        setLeaves(items)
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Failed to load leave requests.'
+        setLeavesError(message)
+        toast.error(message)
+      } finally {
+        setLoadingLeaves(false)
+      }
+    }
+
+    void fetchEmployeeLeaves()
+  }, [user?.uid])
+
   const formattedDate = useMemo(
     () =>
       currentTime.toLocaleDateString('en-US', {
@@ -116,6 +142,23 @@ function RouteComponent() {
       .map((part) => part[0]?.toUpperCase() ?? '')
       .join('')
   }, [user?.fullName])
+
+  const stats = useMemo(() => {
+    const pending = leaves.filter((leave) => leave.status === 'PENDING').length
+    const approved = leaves.filter((leave) => leave.status === 'APPROVED').length
+    const rejected = leaves.filter((leave) => leave.status === 'REJECTED').length
+    const cancelled = leaves.filter((leave) => leave.status === 'CANCELLED').length
+
+    return {
+      total: leaves.length,
+      pending,
+      approved,
+      rejected,
+      cancelled,
+    }
+  }, [leaves])
+
+  const recentLeaves = useMemo(() => leaves.slice(0, 4), [leaves])
 
   const handleLogout = async () => {
     await signOut(auth)
@@ -193,12 +236,12 @@ function RouteComponent() {
 
             <Card className="border-[#E6E8EC] shadow-sm">
               <CardHeader className="pb-2">
-                <CardDescription>Available leaves</CardDescription>
-                <CardTitle className="text-lg">Leave balance</CardTitle>
+                <CardDescription>Total filed</CardDescription>
+                <CardTitle className="text-lg">Leave requests</CardTitle>
               </CardHeader>
               <CardContent className="flex items-end justify-between">
-                <p className="text-4xl font-semibold">5</p>
-                <Plane className="h-5 w-5 text-[#1A5FD7]" />
+                <p className="text-4xl font-semibold">{loadingLeaves ? '-' : stats.total}</p>
+                <Sparkles className="h-5 w-5 text-[#1A5FD7]" />
               </CardContent>
             </Card>
 
@@ -208,27 +251,21 @@ function RouteComponent() {
                 <CardTitle className="text-lg">Pending requests</CardTitle>
               </CardHeader>
               <CardContent className="flex items-end justify-between">
-                <p className="text-4xl font-semibold">1</p>
+                <p className="text-4xl font-semibold">{loadingLeaves ? '-' : stats.pending}</p>
                 <Sparkles className="h-5 w-5 text-[#1A5FD7]" />
               </CardContent>
             </Card>
 
             <Card className="border-[#E6E8EC] shadow-sm">
               <CardHeader className="pb-2">
-                <CardDescription>Account</CardDescription>
-                <CardTitle className="text-lg">Member since</CardTitle>
+                <CardDescription>Decisions</CardDescription>
+                <CardTitle className="text-lg">Approved / Rejected</CardTitle>
               </CardHeader>
               <CardContent className="space-y-1">
-                <p className="font-medium">
-                  {new Date(user.createdAt).toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "2-digit",
-                    year: "numeric",
-                  })}
+                <p className="text-2xl font-semibold">
+                  {loadingLeaves ? '-' : `${stats.approved} / ${stats.rejected}`}
                 </p>
-                <p className="text-sm text-[#6B7280]">
-                  Corporate profile verified
-                </p>
+                <p className="text-sm text-[#6B7280]">Cancelled: {loadingLeaves ? '-' : stats.cancelled}</p>
               </CardContent>
             </Card>
           </div>
@@ -237,18 +274,17 @@ function RouteComponent() {
             <Card className="border-[#E6E8EC] shadow-sm lg:col-span-2">
               <CardHeader>
                 <CardTitle className="text-xl">Recent Leave Activity</CardTitle>
-                <CardDescription>
-                  Dynamic profile is live. Leave API integration can be
-                  connected next.
-                </CardDescription>
+                <CardDescription>Live data from your leave requests.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <RequestLeaveItem
-                  title="Vacation Leave"
-                  time="Submitted 2 days ago"
-                  status="Pending"
-                />
+                {loadingLeaves ? (
+                  <div className="flex items-center gap-2 rounded-xl border border-[#E6E8EC] p-4 text-sm text-[#6B7280]">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Loading activity...
+                  </div>
+                ) : null}
 
+<<<<<<< HEAD
                 <RequestLeaveItem
                   title="Sick Leave"
                   time="Approved last week"
@@ -259,11 +295,43 @@ function RouteComponent() {
                   time="Reviewed 3 weeks ago"
                   status="Rejected"
                 />
+=======
+                {!loadingLeaves && leavesError ? (
+                  <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+                    {leavesError}
+                  </div>
+                ) : null}
+>>>>>>> dd73de1f9ad201d110f98f76a4ac8b1aefccdba8
 
-                <Button asChild variant={"outline"} className="w-full">
-                  <Link to="/leaves-list/requests-list">
-                    View your requests
-                  </Link>
+                {!loadingLeaves && !leavesError && recentLeaves.length === 0 ? (
+                  <div className="rounded-xl border border-[#E6E8EC] p-4 text-sm text-[#6B7280]">
+                    No leave requests filed yet.
+                  </div>
+                ) : null}
+
+                {!loadingLeaves && !leavesError
+                  ? recentLeaves.map((leave) => (
+                      <div
+                        key={leave.leaveId}
+                        className="flex flex-col gap-2 rounded-xl border border-[#E6E8EC] bg-white p-4 sm:flex-row sm:items-center sm:justify-between"
+                      >
+                        <div>
+                          <p className="font-medium">
+                            {leave.leaveType} ({leave.startDate} to {leave.endDate})
+                          </p>
+                          <p className="text-sm text-[#6B7280]">
+                            Submitted: {new Date(leave.createdAt).toLocaleString('en-US')}
+                          </p>
+                        </div>
+                        <span className="inline-flex w-fit rounded-full bg-[#EEF4FF] px-3 py-1 text-xs font-medium text-[#1A5FD7]">
+                          {leave.status}
+                        </span>
+                      </div>
+                    ))
+                  : null}
+
+                <Button asChild variant="outline" className="w-full">
+                  <Link to="/leaves-list/requests-list">View your requests</Link>
                 </Button>
               </CardContent>
             </Card>
@@ -271,9 +339,7 @@ function RouteComponent() {
             <Card className="border-[#E6E8EC] shadow-sm">
               <CardHeader>
                 <CardTitle className="text-xl">Account Snapshot</CardTitle>
-                <CardDescription>
-                  Fetched from authenticated session
-                </CardDescription>
+                <CardDescription>Fetched from authenticated session</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4 text-sm">
                 <div className="flex items-center gap-3">
@@ -287,13 +353,13 @@ function RouteComponent() {
                 <div className="flex items-center gap-3">
                   <Clock3 className="h-4 w-4 text-[#1A5FD7]" />
                   <span>
-                    Last login:{" "}
-                    {new Date(user.lastLoginAt).toLocaleString("en-US", {
-                      month: "short",
-                      day: "2-digit",
-                      year: "numeric",
-                      hour: "2-digit",
-                      minute: "2-digit",
+                    Last login:{' '}
+                    {new Date(user.lastLoginAt).toLocaleString('en-US', {
+                      month: 'short',
+                      day: '2-digit',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
                     })}
                   </span>
                 </div>
@@ -303,7 +369,7 @@ function RouteComponent() {
         </section>
       </SidebarInset>
     </SidebarProvider>
-  );
+  )
 }
 
 export default RouteComponent
